@@ -12,9 +12,7 @@ Wake Models
 import numpy as np
 
 # NOTES TO ANNALISE:
-#     Test nested wake provision to PARK 3D and 2D
 #     Add CFD model
-#     probwui should be [wd[tubs[ws]]]
 
 
 def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
@@ -172,8 +170,8 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                     integrand2 = ((cd ** 2.0) + (jwakerad ** 2.0)
                                   - (krad ** 2.0)) / int2_den
                     # print(integrand2)
-                    q = (krad ** 2.0) * (np.acos(integrand1))
-                    b = (jwakerad ** 2.0) * (np.acos(integrand2))
+                    q = (krad ** 2.0) * (np.arccos(integrand1))
+                    b = (jwakerad ** 2.0) * (np.arccos(integrand2))
                     c = 0.5 * np.sqrt((-cd + krad + jwakerad)
                                       * (cd + krad - jwakerad)
                                       * (cd - krad + jwakerad)
@@ -227,8 +225,8 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                             integrand2 = ((cd ** 2.0) + (jwakerad ** 2.0)
                                           - (krad ** 2.0))
                             integrand2 = integrand2 / (2.0 * cd * jwakerad)
-                            d = (krad ** 2.0) * (np.acos(integrand1))
-                            b = (jwakerad ** 2.0) * (np.acos(integrand2))
+                            d = (krad ** 2.0) * (np.arccos(integrand1))
+                            b = (jwakerad ** 2.0) * (np.arccos(integrand2))
                             c = 0.5 * np.sqrt((-cd + krad + jwakerad)
                                               * (cd + krad - jwakerad)
                                               * (cd - krad + jwakerad)
@@ -251,7 +249,7 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
             complete_percent.append(parpercent)
         percent[i] = complete_percent
         xcoords[i] = dummyx
-        xcoords[i] = dummyz
+        zcoords[i] = dummyz
     # Code Check
     # Compute_Wake(initial_num, z0, U0, Zref, alphah, ro, aif)
 
@@ -259,167 +257,175 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
     # on downstream distance
     for wd in range(num_directions):
         wdsp_byturb = []
-        analysis_order = [(i, ylocs[wd]) for i in range(initial_num)]
+        analysis_order = [(i, ylocs[i][wd]) for i in range(initial_num)]
         analysis_order.sort(key=lambda x: x[1])
         analysis_order = [i[0] for i in analysis_order]
         for k in analysis_order:
             wdsp = []
             for u0i in range(0, len(U0)):
-                if len(usturbines[k][wd]) == 0:
-                    # if turbine has no upstream turbines,
-                    # INCORPORATE POWER LAW
-                    hubheight = hh[k]
-                    # corrects wind speed for hub height
-                    Uz = U0[u0i] * ((hubheight / Zref) ** alphah)
-                    wdsp.append(Uz)
-
-                elif len(usturbines[k][wd]) == 1:
-                    # if turbine has 1 upstream turbine
-                    total = 0.0
-                    # USturb = usturbines[k][wd][0]
-                    # USht = hh[USturb]
-                    x = distances[k][wd][0]
-                    hubheight = hh[k]
-                    temp = (0.5 / np.log(hubheight / z0))
-                    # turbines[k].alpha = temp
-                    alpha = temp
-                    Rr = rr[k]
-
-                    # Grady Model
-                    r1 = Rr * np.sqrt((1 - aif) / (1 - 2*aif))
-                    EWU = U0[u0i] * (1 - (2 * aif)/((1 + alpha*(x/r1))**(2)))
-                    Uz = EWU * ((hubheight / Zref) ** alphah)
-                    # print(turbines[k].percent[wd][0])
-                    portion = Uz * percent[k][wd][0]
-                    remainder = (U0[u0i] * (1.0 - percent[k][wd][0])
-                                 * ((hubheight / Zref) ** alphah))
-                    # weighted average of windspeeds
-                    total = portion + remainder
-                    wdsp.append(total)
-
-                elif len(usturbines[k][wd]) == 2 and len(percent[k][wd]) != 0:
-                    # if the turbine has two upstream turbines
-                    # whose wakes do not overlap
-                    portion = 0.0
-                    total = 0.0
-                    for j in range(0, len(usturbines[k][wd])):
-                        x = distances[k][wd][j]
-                        # USturb = turbines[k].usturbines[wd][j]
+                if U0[u0i] > 0:
+                    if len(usturbines[k][wd]) == 0:
+                        # if turbine has no upstream turbines,
+                        # INCORPORATE POWER LAW
                         hubheight = hh[k]
-                        alpha = 0.5 / np.log(hubheight / z0)
-                        Rr = rr[k]
-                        r1 = Rr * np.sqrt((1 - aif) / (1 - 2 * aif))
-                        wake_red = (1 - (2 * aif)/((1 + alpha*(x/r1))**(2)))
-                        EWU = U0[u0i] * wake_red
-                        Uz = EWU * ((hubheight / Zref) ** alphah)
-                        portion += Uz * percent[k][wd][j]
-                    rem_perc = 1.0 - percent[k][wd][0] - percent[k][wd][1]
-                    remainder = U0[u0i] * rem_perc
-                    # INCORPORATE POWER LAW
-                    remainder = remainder * ((hubheight / Zref) ** alphah)
-                    # weighted average of windspeeds
-                    total = portion + remainder
-                    wdsp.append(total)
-                # turbine has at least two upstream turbines whos wakes overlap
-                elif len(usturbines[k][wd]) >= 2 and len(percent[k][wd]) == 0:
-                    coordWS = []
-                    usturbcoord = [[] for i in range(len(xcoords[k][wd]))]
-                    for i in range(0, len(xcoords[k][wd])):
-                        # xcoords created in Discretize_RSA
-                        decWS = []
-                        xval = xcoords[k][wd][i]
-                        zval = zcoords[k][wd][i]
-                        khub = hh[k]
-                        # alpha = 0.5 / math.log(zval / z0)
-                        Rr = rr[k]
-                        # r1 = Rr * np.sqrt((1.0 - aif) / (1.0 - 2.0 * aif))
-                        for j in range(len(usturbines[k][wd])):
-                            x = distances[k][wd][j]
-                            US = usturbines[k][wd][j]
-                            r2 = wakewidths[k][wd][j] / 2.0
-                            # 'c' for centerline of wake
-                            xc = xlocs[US][wd]
-                            # yc = turbines[US].YLocation[wd]
-                            zhubc = hh[US]
-                            xturb = xval
-                            # yturb = ylocs[k][winddir]
-                            zhubturb = zval
-                            # height of the triangular portion of
-                            # the chord area in z
-                            rt2 = abs(zhubturb - zhubc)
-                            # height of the triangluar portion of
-                            # the chord area in x
-                            rt1 = abs(xturb - xc)
-                            # distance between wake center
-                            # and discritized point
-                            space = np.sqrt((rt2 ** 2) + (rt1 ** 2))
+                        # corrects wind speed for hub height
+                        Uz = U0[u0i] * ((hubheight / Zref) ** alphah)
+                        wdsp.append(Uz)
 
-                            if space <= r2:  # if point is within wake
-                                Rr = rr[k]
-                                alpha = 0.5 / np.log(zval / z0)
-                                # Grady's a
-                                r1 = Rr * np.sqrt((1 - aif) / (1 - 2 * aif))
-                                wake = (1 - (2*aif)/((1+alpha*(x/r1))**(2)))
-                                Uz = U0[u0i] * wake
-                                decWS.append(Uz)
-                                usturbcoord[i].append(US)
-
-                        coordui = 0.0
-                        if len(decWS) != 0:
-                            # if the point only has one wake acting on it
-                            if len(decWS) == 1:
-                                coordui = decWS[0] * ((zval / Zref) ** alphah)
-                                coordWS.append(coordui)
-                            # if the pint has more than one wake acting on it
-                            elif len(decWS) > 1:
-                                tally = 0.0
-                                for l in range(0, len(decWS)):
-                                    u = decWS[l]
-                                    tally += ((1.0 - (u / U0[u0i])) ** 2.0)
-
-                                coordui = U0[u0i] * (1 - (np.sqrt(tally)))
-                                # INCORPORATE POWER LAW
-                                coordui = coordui * ((zval / Zref) ** alphah)
-                                coordWS.append(coordui)
-                        # if the point has no wakes acting on it
-                        else:
-                            Uz = U0[u0i] * ((zval / Zref) ** alphah)
-                            coordui = Uz
-                            coordWS.append(coordui)
-                    # nested wake provision
-                    # if every point has the same upstream turbines
-                    # AND the user has specified the nwp
-                    all_set = set([usturbcoord[0] == i for i in usturbcoord])
-                    if all_set == {True} and nwp:
-                        # find index of closest upstream wake
-                        ustbs = distances[k][wd]
-                        x = min(ustbs)
-                        usindex = ustbs.index(x)
-                        # print("analyzing turbine: ",k)
-                        # print('only reducing speed from turbine: ',usindex)
+                    elif len(usturbines[k][wd]) == 1:
+                        # if turbine has 1 upstream turbine
+                        total = 0.0
+                        # USturb = usturbines[k][wd][0]
+                        # USht = hh[USturb]
+                        x = distances[k][wd][0]
                         hubheight = hh[k]
                         alpha = (0.5 / np.log(hubheight / z0))
                         Rr = rr[k]
-                        # Grady Model
-                        r1 = Rr * np.sqrt((1-aif) / (1 - 2*aif))
-                        EWU = (windspeeds[wd][usindex][u0i]
-                               * (1 - (2*aif)/((1+alpha*(x/r1))**(2))))
-                        wdsp.append(EWU * ((hubheight / Zref) ** alphah))
-                    # no nested wake provision
-                    else:
-                        # Sum discretized wind speeds
-                        tally2 = 0.0
-                        percentage = 1.0 / 49.0
-                        for f in range(0, len(coordWS)):
-                            tally2 += percentage * coordWS[f]
 
-                        d = len(coordWS)
-                        wdsp.append(tally2)
+                        # Grady Model
+                        r1 = Rr * np.sqrt((1 - aif) / (1 - 2*aif))
+                        EWU = (U0[u0i]
+                               * (1 - (2 * aif)/((1 + alpha*(x/r1))**(2))))
+                        Uz = EWU * ((hubheight / Zref) ** alphah)
+                        # print(turbines[k].percent[wd][0])
+                        portion = Uz * percent[k][wd][0]
+                        remainder = (U0[u0i] * (1.0 - percent[k][wd][0])
+                                     * ((hubheight / Zref) ** alphah))
+                        # weighted average of windspeeds
+                        total = portion + remainder
+                        wdsp.append(total)
+
+                    elif (len(usturbines[k][wd]) == 2
+                          and len(percent[k][wd]) != 0):
+                        # if the turbine has two upstream turbines
+                        # whose wakes do not overlap
+                        portion = 0.0
+                        total = 0.0
+                        for j in range(0, len(usturbines[k][wd])):
+                            x = distances[k][wd][j]
+                            # USturb = turbines[k].usturbines[wd][j]
+                            hubheight = hh[k]
+                            alpha = 0.5 / np.log(hubheight / z0)
+                            Rr = rr[k]
+                            r1 = Rr * np.sqrt((1 - aif) / (1 - 2 * aif))
+                            wake_red = ((1 - (2 * aif)
+                                        / ((1 + alpha*(x / r1))**(2))))
+                            EWU = U0[u0i] * wake_red
+                            Uz = EWU * ((hubheight / Zref) ** alphah)
+                            portion += Uz * percent[k][wd][j]
+                        rem_perc = 1.0 - percent[k][wd][0] - percent[k][wd][1]
+                        remainder = U0[u0i] * rem_perc
+                        # INCORPORATE POWER LAW
+                        remainder = remainder * ((hubheight / Zref) ** alphah)
+                        # weighted average of windspeeds
+                        total = portion + remainder
+                        wdsp.append(total)
+                    # turbine has at least two upstream turbines
+                    # whos wakes overlap
+                    elif (len(usturbines[k][wd]) >= 2
+                          and len(percent[k][wd]) == 0):
+                        coordWS = []
+                        usturbcoord = [[] for i in range(len(xcoords[k][wd]))]
+                        for i in range(0, len(xcoords[k][wd])):
+                            # xcoords created in Discretize_RSA
+                            decWS = []
+                            xval = xcoords[k][wd][i]
+                            zval = zcoords[k][wd][i]
+                            khub = hh[k]
+                            Rr = rr[k]
+                            for j in range(len(usturbines[k][wd])):
+                                x = distances[k][wd][j]
+                                US = usturbines[k][wd][j]
+                                r2 = wakewidths[k][wd][j] / 2.0
+                                xc = xlocs[US][wd]
+                                zhubc = hh[US]
+                                xturb = xval
+                                zhubturb = zval
+                                # height of the triangular portion of
+                                # the chord area in z
+                                rt2 = abs(zhubturb - zhubc)
+                                # height of the triangluar portion of
+                                # the chord area in x
+                                rt1 = abs(xturb - xc)
+                                # distance between wake center
+                                # and discritized point
+                                space = np.sqrt((rt2 ** 2) + (rt1 ** 2))
+
+                                if space <= r2:  # if point is within wake
+                                    Rr = rr[k]
+                                    alpha = 0.5 / np.log(zval / z0)
+                                    # Grady's a
+                                    r1 = (Rr
+                                          * np.sqrt((1 - aif) / (1 - 2 * aif)))
+                                    denom = ((1 + alpha*(x / r1))**2)
+                                    wake = (1 - (2 * aif) / denom)
+                                    Uz = U0[u0i] * wake
+                                    decWS.append(Uz)
+                                    usturbcoord[i].append(US)
+
+                            coordui = 0.0
+                            if len(decWS) != 0:
+                                # if the point only has one wake acting on it
+                                if len(decWS) == 1:
+                                    coordui = (decWS[0]
+                                               * ((zval / Zref) ** alphah))
+                                    coordWS.append(coordui)
+                                # if the pint has more than one
+                                # wake acting on it
+                                elif len(decWS) > 1:
+                                    tally = 0.0
+                                    for l in range(0, len(decWS)):
+                                        u = decWS[l]
+                                        tally += ((1.0 - (u / U0[u0i])) ** 2.0)
+
+                                    coordui = U0[u0i] * (1 - (np.sqrt(tally)))
+                                    # INCORPORATE POWER LAW
+                                    coordui = (coordui
+                                               * ((zval / Zref) ** alphah))
+                                    coordWS.append(coordui)
+                            # if the point has no wakes acting on it
+                            else:
+                                Uz = U0[u0i] * ((zval / Zref) ** alphah)
+                                coordui = Uz
+                                coordWS.append(coordui)
+                        # nested wake provision
+                        # if every point has the same upstream turbines
+                        # AND the user has specified the nwp
+                        subset = [usturbcoord[0] == i for i in usturbcoord]
+                        all_set = set(subset)
+                        if all_set == {True} and nwp:
+                            # find index of closest upstream wake
+                            ustbs = distances[k][wd]
+                            x = min(ustbs)
+                            usindex = ustbs.index(x)
+                            usindex = usturbines[k][wd][usindex]
+                            hubheight = hh[k]
+                            alpha = (0.5 / np.log(hubheight / z0))
+                            Rr = rr[k]
+                            # Grady Model
+                            r1 = Rr * np.sqrt((1-aif) / (1 - 2*aif))
+                            EWU = (wdsp_byturb[usindex][u0i]
+                                   * (1 - (2*aif)/((1+alpha*(x/r1))**(2))))
+                            wdsp.append(EWU * ((hubheight / Zref) ** alphah))
+                        # no nested wake provision
+                        else:
+                            # Sum discretized wind speeds
+                            tally2 = 0.0
+                            percentage = 1.0 / 49.0
+                            for f in range(0, len(coordWS)):
+                                tally2 += percentage * coordWS[f]
+                            wdsp.append(tally2)
+                elif int(U0[u0i]) == 0:
+                    wdsp.append(0.)
+                else:
+                    raise ValueError('negative windspeed encountered')
             wdsp_byturb.append(wdsp)
         order_wdsp = list(zip(analysis_order, wdsp_byturb))
         order_wdsp.sort(key=lambda x: x[0])
         wdsp_byturb = [ii[1] for ii in order_wdsp]
         windspeeds[wd] = wdsp_byturb
+        print('windspeeds end')
+        print(windspeeds)
 
     # calculate power developed for each turbine
     for i in range(0, initial_num):
@@ -449,6 +455,7 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                     p1 = temp1 * probwui[wd][spd]
                     pwr.append(p1)
         power[i] = [this_power for this_power in pwr]
+    print(percent)
     if extra:
         return power, windspeeds
     else:
@@ -598,7 +605,7 @@ def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                 elif cd + jwakerad <= krad:
                     # if the wake is fully encompassed by the rotor diameter
                     # flattened to 2D
-                    percentwake = jwakerad / krad
+                    percentwake = jwakerad / (krad * 2.)
                     parpercent.append(percentwake)
 
                 else:
@@ -640,12 +647,15 @@ def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                             # if the wake is fully encompassed
                             # by the rotor diameter
                             # condensed to 2D
-                            percentwake = jwakerad / krad
+                            percentwake = jwakerad / (krad * 2.)
                             parpercent.append(percentwake)
 
                         else:
                             # flattened to 2D
-                            z = (krad + jwakerad - cd) / krad
+                            z = (krad + jwakerad - cd) / (krad * 2.)
+                            print(jwakerad)
+                            print(cd)
+                            print(krad)
                             # percentage of RSA that has wake interaction
                             parpercent.append(z)
 
@@ -660,167 +670,176 @@ def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
             complete_percent.append(parpercent)
         percent[i] = complete_percent
         xcoords[i] = dummyx
-        xcoords[i] = dummyz
+        zcoords[i] = dummyz
     # Code Check
     # Compute_Wake(initial_num, z0, U0, Zref, alphah, ro, aif)
     # calculate wind speed for each downstream turbine based
     # on downstream distance
     for wd in range(num_directions):
         wdsp_byturb = []
-        analysis_order = [(i, ylocs[wd]) for i in range(initial_num)]
+        analysis_order = [(i, ylocs[i][wd]) for i in range(initial_num)]
         analysis_order.sort(key=lambda x: x[1])
         analysis_order = [i[0] for i in analysis_order]
         for k in analysis_order:
             wdsp = []
             for u0i in range(0, len(U0)):
-                if len(usturbines[k][wd]) == 0:
-                    # if turbine has no upstream turbines,
-                    # INCORPORATE POWER LAW
-                    hubheight = hh[k]
-                    # corrects wind speed for hub height
-                    Uz = U0[u0i] * ((hubheight / Zref) ** alphah)
-                    wdsp.append(Uz)
-
-                elif len(usturbines[k][wd]) == 1:
-                    # if turbine has 1 upstream turbine
-                    total = 0.0
-                    # USturb = usturbines[k][wd][0]
-                    # USht = hh[USturb]
-                    x = distances[k][wd][0]
-                    hubheight = hh[k]
-                    temp = (0.5 / np.log(hubheight / z0))
-                    # turbines[k].alpha = temp
-                    alpha = temp
-                    Rr = rr[k]
-
-                    # Grady Model
-                    r1 = Rr * np.sqrt((1 - aif) / (1 - 2*aif))
-                    EWU = U0[u0i] * (1 - (2 * aif)/((1 + alpha*(x/r1))**(2)))
-                    Uz = EWU * ((hubheight / Zref) ** alphah)
-                    # print(turbines[k].percent[wd][0])
-                    portion = Uz * percent[k][wd][0]
-                    remainder = (U0[u0i] * (1.0 - percent[k][wd][0])
-                                 * ((hubheight / Zref) ** alphah))
-                    # weighted average of windspeeds
-                    total = portion + remainder
-                    wdsp.append(total)
-
-                elif len(usturbines[k][wd]) == 2 and len(percent[k][wd]) != 0:
-                    # if the turbine has two upstream turbines
-                    # whose wakes do not overlap
-                    portion = 0.0
-                    total = 0.0
-                    for j in range(0, len(usturbines[k][wd])):
-                        x = distances[k][wd][j]
-                        # USturb = turbines[k].usturbines[wd][j]
+                if U0[u0i] > 0.:
+                    if len(usturbines[k][wd]) == 0:
+                        # if turbine has no upstream turbines,
+                        # INCORPORATE POWER LAW
                         hubheight = hh[k]
-                        alpha = 0.5 / np.log(hubheight / z0)
-                        Rr = rr[k]
-                        r1 = Rr * np.sqrt((1 - aif) / (1 - 2 * aif))
-                        wake_red = (1 - (2 * aif)/((1 + alpha*(x/r1))**(2)))
-                        EWU = U0[u0i] * wake_red
-                        Uz = EWU * ((hubheight / Zref) ** alphah)
-                        portion += Uz * percent[k][wd][j]
-                    rem_perc = 1.0 - percent[k][wd][0] - percent[k][wd][1]
-                    remainder = U0[u0i] * rem_perc
-                    # INCORPORATE POWER LAW
-                    remainder = remainder * ((hubheight / Zref) ** alphah)
-                    # weighted average of windspeeds
-                    total = portion + remainder
-                    wdsp.append(total)
-                # turbine has at least two upstream turbines whos wakes overlap
-                elif len(usturbines[k][wd]) >= 2 and len(percent[k][wd]) == 0:
-                    coordWS = []
-                    usturbcoord = [[] for i in range(len(xcoords[k][wd]))]
-                    for i in range(0, len(xcoords[k][wd])):
-                        # xcoords created in Discretize_RSA
-                        decWS = []
-                        xval = xcoords[k][wd][i]
-                        zval = zcoords[k][wd][i]
-                        khub = hh[k]
-                        # alpha = 0.5 / math.log(zval / z0)
-                        Rr = rr[k]
-                        # r1 = Rr * np.sqrt((1.0 - aif) / (1.0 - 2.0 * aif))
-                        for j in range(len(usturbines[k][wd])):
-                            x = distances[k][wd][j]
-                            US = usturbines[k][wd][j]
-                            r2 = wakewidths[k][wd][j] / 2.0
-                            # 'c' for centerline of wake
-                            xc = xlocs[US][wd]
-                            # yc = turbines[US].YLocation[wd]
-                            zhubc = hh[US]
-                            xturb = xval
-                            # yturb = ylocs[k][winddir]
-                            zhubturb = zval
-                            # height of the triangular portion of
-                            # the chord area in z
-                            rt2 = abs(zhubturb - zhubc)
-                            # height of the triangluar portion of
-                            # the chord area in x
-                            rt1 = abs(xturb - xc)
-                            # distance between wake center
-                            # and discritized point
-                            space = np.sqrt((rt2 ** 2) + (rt1 ** 2))
+                        # corrects wind speed for hub height
+                        Uz = U0[u0i] * ((hubheight / Zref) ** alphah)
+                        wdsp.append(Uz)
 
-                            if space <= r2:  # if point is within wake
-                                Rr = rr[k]
-                                alpha = 0.5 / np.log(zval / z0)
-                                # Grady's a
-                                r1 = Rr * np.sqrt((1 - aif) / (1 - 2 * aif))
-                                wake = (1 - (2*aif)/((1+alpha*(x/r1))**(2)))
-                                Uz = U0[u0i] * wake
-                                decWS.append(Uz)
-                                usturbcoord[i].append(US)
-
-                        coordui = 0.0
-                        if len(decWS) != 0:
-                            # if the point only has one wake acting on it
-                            if len(decWS) == 1:
-                                coordui = decWS[0] * ((zval / Zref) ** alphah)
-                                coordWS.append(coordui)
-                            # if the pint has more than one wake acting on it
-                            elif len(decWS) > 1:
-                                tally = 0.0
-                                for l in range(0, len(decWS)):
-                                    u = decWS[l]
-                                    tally += ((1.0 - (u / U0[u0i])) ** 2.0)
-
-                                coordui = U0[u0i] * (1 - (np.sqrt(tally)))
-                                # INCORPORATE POWER LAW
-                                coordui = coordui * ((zval / Zref) ** alphah)
-                                coordWS.append(coordui)
-                        # if the point has no wakes acting on it
-                        else:
-                            Uz = U0[u0i] * ((zval / Zref) ** alphah)
-                            coordui = Uz
-                            coordWS.append(coordui)
-                    # nested wake provision
-                    # if every point has the same upstream turbines
-                    # AND the user has specified the nwp
-                    all_set = set([usturbcoord[0] == i for i in usturbcoord])
-                    if all_set == {True} and nwp:
-                        # find index of closest upstream wake
-                        ustbs = distances[k][wd]
-                        x = min(ustbs)
-                        usindex = ustbs.index(x)
-                        # print("analyzing turbine: ",k)
-                        # print('only reducing speed from turbine: ',usindex)
+                    elif len(usturbines[k][wd]) == 1:
+                        # if turbine has 1 upstream turbine
+                        total = 0.0
+                        # USturb = usturbines[k][wd][0]
+                        # USht = hh[USturb]
+                        x = distances[k][wd][0]
                         hubheight = hh[k]
-                        alpha = (0.5 / np.log(hubheight / z0))
+                        temp = (0.5 / np.log(hubheight / z0))
+                        # turbines[k].alpha = temp
+                        alpha = temp
                         Rr = rr[k]
+
                         # Grady Model
-                        r1 = Rr * np.sqrt((1-aif) / (1 - 2*aif))
-                        EWU = (windspeeds[wd][usindex][u0i]
-                               * (1 - (2*aif)/((1+alpha*(x/r1))**(2))))
-                        wdsp.append(EWU * ((hubheight / Zref) ** alphah))
-                    # no nested wake provision
-                    else:
-                        # Sum discretized wind speeds
-                        tally2 = 0.0
-                        percentage = 1.0 / 49.0
-                        for f in range(0, len(coordWS)):
-                            tally2 += percentage * coordWS[f]
-                        wdsp.append(tally2)
+                        r1 = Rr * np.sqrt((1 - aif) / (1 - 2*aif))
+                        EWU = (U0[u0i]
+                               * (1 - (2 * aif)/((1 + alpha*(x/r1))**(2))))
+                        Uz = EWU * ((hubheight / Zref) ** alphah)
+                        # print(turbines[k].percent[wd][0])
+                        portion = Uz * percent[k][wd][0]
+                        remainder = (U0[u0i] * (1.0 - percent[k][wd][0])
+                                     * ((hubheight / Zref) ** alphah))
+                        # weighted average of windspeeds
+                        total = portion + remainder
+                        wdsp.append(total)
+
+                    elif (len(usturbines[k][wd]) == 2
+                          and len(percent[k][wd]) != 0):
+                        # if the turbine has two upstream turbines
+                        # whose wakes do not overlap
+                        portion = 0.0
+                        total = 0.0
+                        for j in range(0, len(usturbines[k][wd])):
+                            x = distances[k][wd][j]
+                            # USturb = turbines[k].usturbines[wd][j]
+                            hubheight = hh[k]
+                            alpha = 0.5 / np.log(hubheight / z0)
+                            Rr = rr[k]
+                            r1 = Rr * np.sqrt((1 - aif) / (1 - 2 * aif))
+                            denom = (1 + alpha*(x/r1))**(2)
+                            wake_red = (1 - (2 * aif) / denom)
+                            EWU = U0[u0i] * wake_red
+                            Uz = EWU * ((hubheight / Zref) ** alphah)
+                            portion += Uz * percent[k][wd][j]
+                        rem_perc = 1.0 - percent[k][wd][0] - percent[k][wd][1]
+                        remainder = U0[u0i] * rem_perc
+                        # INCORPORATE POWER LAW
+                        remainder = remainder * ((hubheight / Zref) ** alphah)
+                        # weighted average of windspeeds
+                        total = portion + remainder
+                        wdsp.append(total)
+                    # turbine has at least two upstream turbines
+                    # whos wakes overlap
+                    elif (len(usturbines[k][wd]) >= 2
+                          and len(percent[k][wd]) == 0):
+                        coordWS = []
+                        usturbcoord = [[] for i in range(len(xcoords[k][wd]))]
+                        for i in range(0, len(xcoords[k][wd])):
+                            # xcoords created in Discretize_RSA
+                            decWS = []
+                            xval = xcoords[k][wd][i]
+                            zval = zcoords[k][wd][i]
+                            khub = hh[k]
+                            Rr = rr[k]
+                            for j in range(len(usturbines[k][wd])):
+                                x = distances[k][wd][j]
+                                US = usturbines[k][wd][j]
+                                r2 = wakewidths[k][wd][j] / 2.0
+                                xc = xlocs[US][wd]
+                                zhubc = hh[US]
+                                xturb = xval
+                                zhubturb = zval
+                                # height of the triangular portion of
+                                # the chord area in z
+                                rt2 = abs(zhubturb - zhubc)
+                                # height of the triangluar portion of
+                                # the chord area in x
+                                rt1 = abs(xturb - xc)
+                                # distance between wake center
+                                # and discritized point
+                                space = np.sqrt((rt2 ** 2) + (rt1 ** 2))
+
+                                if space <= r2:  # if point is within wake
+                                    Rr = rr[k]
+                                    alpha = 0.5 / np.log(zval / z0)
+                                    # Grady's a
+                                    r1 = (Rr
+                                          * np.sqrt((1 - aif) / (1 - 2 * aif)))
+                                    denom = (1 + alpha * (x / r1))**(2)
+                                    wake = (1 - (2*aif)/denom)
+                                    Uz = U0[u0i] * wake
+                                    decWS.append(Uz)
+                                    usturbcoord[i].append(US)
+
+                            coordui = 0.0
+                            if len(decWS) != 0:
+                                # if the point only has one wake acting on it
+                                if len(decWS) == 1:
+                                    coordui = (decWS[0]
+                                               * ((zval / Zref) ** alphah))
+                                    coordWS.append(coordui)
+                                # if the pint has more than one
+                                # wake acting on it
+                                elif len(decWS) > 1:
+                                    tally = 0.0
+                                    for l in range(0, len(decWS)):
+                                        u = decWS[l]
+                                        tally += ((1.0 - (u / U0[u0i])) ** 2.0)
+                                    coordui = U0[u0i] * (1 - (np.sqrt(tally)))
+                                    # INCORPORATE POWER LAW
+                                    coordui = (coordui
+                                               * ((zval / Zref) ** alphah))
+                                    coordWS.append(coordui)
+                            # if the point has no wakes acting on it
+                            else:
+                                Uz = U0[u0i] * ((zval / Zref) ** alphah)
+                                coordui = Uz
+                                coordWS.append(coordui)
+                        # nested wake provision
+                        # if every point has the same upstream turbines
+                        # AND the user has specified the nwp
+                        subset = [usturbcoord[0] == i for i in usturbcoord]
+                        all_set = set(subset)
+                        if all_set == {True} and nwp:
+                            # find index of closest upstream wake
+                            ustbs = distances[k][wd]
+                            x = min(ustbs)
+                            usindex = ustbs.index(x)
+                            usindex = usturbines[k][wd][usindex]
+                            hubheight = hh[k]
+                            alpha = (0.5 / np.log(hubheight / z0))
+                            Rr = rr[k]
+                            # Grady Model
+                            r1 = Rr * np.sqrt((1-aif) / (1 - 2*aif))
+                            EWU = (wdsp_byturb[usindex][u0i]
+                                   * (1 - (2*aif)/((1+alpha*(x/r1))**(2))))
+                            wdsp.append(EWU * ((hubheight / Zref) ** alphah))
+                        # no nested wake provision
+                        else:
+                            # Sum discretized wind speeds
+                            tally2 = 0.0
+                            percentage = 1.0 / len(xcoords[k][wd])
+                            for f in range(0, len(coordWS)):
+                                tally2 += percentage * coordWS[f]
+                            wdsp.append(tally2)
+                elif int(U0[u0i]) == 0:
+                    wdsp.append(0.)
+                else:
+                    raise ValueError('negative windspeed encountered')
             wdsp_byturb.append(wdsp)
         order_wdsp = list(zip(analysis_order, wdsp_byturb))
         order_wdsp.sort(key=lambda x: x[0])

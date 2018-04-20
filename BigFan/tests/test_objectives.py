@@ -8,46 +8,54 @@ Unit tests for objectives.py
 ME 599 Project - Spring 2018
 """
 
-import unittest as ut
-import objectives
+import pytest
+from BigFan import objectives
 
 
-class Testcost_models(ut.TestCase):
-    # test Cost
-    def test_cost_offshore(self):
-        pass
+# test Cost
+def test_cost_offshore():
+    pass
 
-    def tets_cost_onshore(self):
-        pass
 
-    # Test Profit
-    def test_profit_offshore(self):
-        pass
+def tets_cost_onshore():
+    pass
 
-    def test_profit_onshore(self):
-        pass
 
-    # Test COP
-    def test_COP_offshore(self):
-        pass
+# Test Profit
+def test_profit_offshore():
+    pass
 
-    def test_COP_onshore(self):
-        pass
 
-    # Test LCOE
-    def test_LCOE_offshore(self):
-        pass
+def test_profit_onshore():
+    pass
 
-    def test_LCOE_onshore(self):
-        pass
 
-    # Test AEP
-    def test_AEP_offshore(self):
-        pass
+# Test COP
+def test_COP_offshore():
+    pass
 
-    def test_AEP_onshore(self):
-        pass
+
+def test_COP_onshore():
+    pass
+
+
+# Test LCOE
+def test_LCOE_offshore():
+    pass
+
+
+def test_LCOE_onshore():
+    pass
+
+
+# Test AEP
+def test_AEP_offshore():
+    pass
+
+
+def test_AEP_onshore():
+    pass
 
 
 if __name__ == '__main__':
-    ut.main()
+    pass
