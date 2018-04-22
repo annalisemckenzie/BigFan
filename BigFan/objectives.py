@@ -10,83 +10,151 @@ Objective Evaluation Options
 """
 
 # NOTES TO ANNALISE:
-#     Change inputs to Compute_Wake
-#     Change inputs to Compute_Cost
+#     None
 
 
 def cost(Compute_Wake, Compute_Cost,
-         compute_wake_stuff,
-         compute_cost_stuff,
-         extra_needed=False):
-    costc, costa = Compute_Cost(initial_num, ro, yrs, WCOE, condition, depth)
-    if extra_needed:
-        power, windspeeds = Compute_Wake(initial_num, z0, U0, Zref, alphah,
-                                         ro, aif, True)
+         xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
+         farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
+         depth, yrs, WCOE, distance_to_shore, a):
+    costlocx = [i[0] for i in xlocs]
+    costlocy = [i[0] for i in ylocs]
+    costc, costa = Compute_Cost(costlocx, costlocy, rr, hh, ro, rated, Cp,
+                                depth, yrs, WCOE, availability,
+                                distance_to_shore)
+    if extra:
+        power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                                         Zref, alphah, ro, aif, farm_y, cut_in,
+                                         rated, cut_out, Cp, availability,
+                                         nwp, extra)
         return (costc + costa), power, windspeeds, (costc + costa)
     else:
-        power = Compute_Wake(initial_num, z0, U0, Zref, alphah,
-                                         ro, aif)
+        power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                             Zref, alphah, ro, aif, farm_y, cut_in,
+                             rated, cut_out, Cp, availability,
+                             nwp, extra)
         return (costc + costa), power
 
 
 def profit(Compute_Wake, Compute_Cost,
-           compute_wake_stuff,
-           compute_cost_stuff,
-           extra_needed=False):
-    costc, costa = Compute_Cost(initial_num, ro, yrs, WCOE, condition, depth)
-    if extra_needed:
-        power, windspeeds = Compute_Wake(initial_num, z0, U0, Zref, alphah,
-                                         ro, aif, True)
-        profit = power * 8760. * farm_life * WCOE - (costc + costa)
+           xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
+           farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
+           depth, yrs, WCOE, distance_to_shore, a):
+    costlocx = [i[0] for i in xlocs]
+    costlocy = [i[0] for i in ylocs]
+    costc, costa = Compute_Cost(costlocx, costlocy, rr, hh, ro, rated, Cp,
+                                depth, yrs, WCOE, availability,
+                                distance_to_shore)
+    if extra:
+        power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                                         Zref, alphah, ro, aif, farm_y, cut_in,
+                                         rated, cut_out, Cp, availability,
+                                         nwp, extra)
+        tot_power = 0.
+        for i in power:
+            tot_power += sum(i)
+        profit = tot_power * 8760. * yrs * WCOE - (costc + costa)
         return profit, power, windspeeds, (costc + costa)
     else:
-        power = Compute_Wake(initial_num, z0, U0, Zref, alphah, ro, aif)
-        profit = power * 8760. * farm_life * WCOE - (costc + costa)
+        power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                             Zref, alphah, ro, aif, farm_y, cut_in,
+                             rated, cut_out, Cp, availability,
+                             nwp, extra)
+        tot_power = 0.
+        for i in power:
+            tot_power += sum(i)
+        profit = -(tot_power * 8760. * yrs * WCOE) + (costc + costa)
         return profit, power
 
 
 def COP(Compute_Wake, Compute_Cost,
-        compute_wake_stuff,
-        compute_cost_stuff,
-        extra_needed=False):
-    costc, costa = Compute_Cost(initial_num, ro, yrs, WCOE, condition, depth)
-    if extra_needed:
-        power, windspeeds = Compute_Wake(initial_num, z0, U0, Zref,
-                                         alphah, ro, aif, True)
-        return sum(power) / (costc + costa), power, windspeeds, (costc + costa)
+        xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
+        farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
+        depth, yrs, WCOE, distance_to_shore, a):
+    costlocx = [i[0] for i in xlocs]
+    costlocy = [i[0] for i in ylocs]
+    costc, costa = Compute_Cost(costlocx, costlocy, rr, hh, ro, rated, Cp,
+                                depth, yrs, WCOE, availability,
+                                distance_to_shore)
+    if extra:
+        power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                                         Zref, alphah, ro, aif, farm_y, cut_in,
+                                         rated, cut_out, Cp, availability,
+                                         nwp, extra)
+        tot_power = 0.
+        for i in power:
+            tot_power += sum(i)
+        return (costc + costa) / tot_power, power, windspeeds, (costc + costa)
     else:
-        power = Compute_Wake(initial_num, z0, U0, Zref, alphah, ro, aif)
-        return sum(power) / (costc + costa), power
+        power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                             Zref, alphah, ro, aif, farm_y, cut_in,
+                             rated, cut_out, Cp, availability,
+                             nwp, extra)
+        tot_power = 0.
+        for i in power:
+            tot_power += sum(i)
+        return (costc + costa) / tot_power, power
 
 
 def LCOE(Compute_Wake, Compute_Cost,
-         compute_wake_stuff,
-         compute_cost_stuff,
-         extra_needed=False):
-    costc, costa = Compute_Cost(initial_num, ro, yrs, WCOE, condition, depth)
-    if extra_needed:
-        power, windspeeds = Compute_Wake(initial_num, z0, U0, Zref,
-                                         alphah, ro, aif, True)
-        LCOE = costc / (a * power * 8760.) + costa / (power * 8760.)
+         xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
+         farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
+         depth, yrs, WCOE, distance_to_shore, a):
+    costlocx = [i[0] for i in xlocs]
+    costlocy = [i[0] for i in ylocs]
+    costc, costa = Compute_Cost(costlocx, costlocy, rr, hh, ro, rated, Cp,
+                                depth, yrs, WCOE, availability,
+                                distance_to_shore)
+    if extra:
+        power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                                         Zref, alphah, ro, aif, farm_y, cut_in,
+                                         rated, cut_out, Cp, availability,
+                                         nwp, extra)
+        tot_power = 0.
+        for i in power:
+            tot_power += sum(i)
+        LCOE = (costc / (a * tot_power * 8760.)
+                + costa / (yrs * tot_power * 8760.))
         return LCOE, power, windspeeds, (costc + costa)
     else:
-        power = Compute_Wake(initial_num, z0, U0, Zref, alphah, ro, aif)
-        LCOE = costc / (a * power * 8760.) + costa / (power * 8760.)
+        power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                             Zref, alphah, ro, aif, farm_y, cut_in,
+                             rated, cut_out, Cp, availability,
+                             nwp, extra)
+        tot_power = 0.
+        for i in power:
+            tot_power += sum(i)
+        LCOE = (costc / (a * tot_power * 8760.)
+                + costa / (yrs * tot_power * 8760.))
         return LCOE, power
 
 
 def AEP(Compute_Wake, Compute_Cost,
-        compute_wake_stuff,
-        compute_cost_stuff,
-        extra_needed=False):
-    if extra_needed:
-        power, windspeeds = Compute_Wake(initial_num, z0, U0, Zref,
-                                         alphah, ro, aif, True)
-        AEP = power * 8760.
-        costc, costa = Compute_Cost(initial_num, ro, yrs, WCOE,
-                                    condition, depth)
+        xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
+        farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
+        depth, yrs, WCOE, distance_to_shore, a):
+    if extra:
+        power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                                         Zref, alphah, ro, aif, farm_y, cut_in,
+                                         rated, cut_out, Cp, availability,
+                                         nwp, extra)
+        tot_power = 0.
+        for i in power:
+            tot_power += sum(i)
+        AEP = -tot_power * 8760.
+        costlocx = [i[0] for i in xlocs]
+        costlocy = [i[0] for i in ylocs]
+        costc, costa = Compute_Cost(costlocx, costlocy, rr, hh, ro, rated, Cp,
+                                    depth, yrs, WCOE, availability,
+                                    distance_to_shore)
         return AEP, power, windspeeds, (costc, costa)
     else:
-        power = Compute_Wake(initial_num, z0, U0, Zref, alphah, ro, aif)
-        AEP = power * 8760.
-        return LCOE, power    
+        power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
+                             Zref, alphah, ro, aif, farm_y, cut_in,
+                             rated, cut_out, Cp, availability,
+                             nwp, extra)
+        tot_power = 0.
+        for i in power:
+            tot_power += sum(i)
+        AEP = -tot_power * 8760.
+        return AEP, power

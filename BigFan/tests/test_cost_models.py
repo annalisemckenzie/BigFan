@@ -37,17 +37,17 @@ def test_onshore_cost():
     hh = [80.] * len(xlocs)
     ro = 1.225
     Uref = 10.
-    Cp = 0.4
+    Cp = 0.5
     depth = 200.
     yrs = 20.
     WCOE = 0.1
-    availability = 0.9
+    availability = 1.
     distance_to_shore = 0.
     a = cost_models.onshore_cost(xlocs, ylocs, rr, hh, ro, Uref, Cp, depth,
                                  yrs, WCOE, availability,
                                  distance_to_shore)
     assert a[0] == 46671600
-    assert int(a[1]) == 339821302
+    assert int(a[1]) == 9439480
 
 
 def test_calcicl():

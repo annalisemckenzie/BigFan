@@ -234,6 +234,8 @@ def onshore_cost(xlocs, ylocs, rr, hh, ro, Uref, Cp, depth, yrs,
                     + (6039. * (r ** 2)) + (2455. * r * h)
                     - (161.2 * (h ** 2)))
         Ptot += 0.5 * ro * (np.pi * pow(r, 2)) * (Uref ** 3.0) * Cp
-    Energy = (Ptot) * 8760. * availability
-    O_M = 0.007 * Energy
+    print(Ptot)
+    Energy = (Ptot) * 8760. * availability / 1000.
+    O_M = 0.007 * Energy * yrs
+    print(O_M)
     return Project, O_M
