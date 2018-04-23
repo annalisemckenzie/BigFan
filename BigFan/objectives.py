@@ -100,6 +100,7 @@ def LCOE(Compute_Wake, Compute_Cost,
          xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
          farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
          depth, yrs, WCOE, distance_to_shore, a):
+    print('evaluating the objective')
     costlocx = [i[0] for i in xlocs]
     costlocy = [i[0] for i in ylocs]
     costc, costa = Compute_Cost(costlocx, costlocy, rr, hh, ro, rated, Cp,

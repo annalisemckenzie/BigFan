@@ -424,8 +424,8 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         order_wdsp.sort(key=lambda x: x[0])
         wdsp_byturb = [ii[1] for ii in order_wdsp]
         windspeeds[wd] = wdsp_byturb
-        print('windspeeds end')
-        print(windspeeds)
+        # print('windspeeds end')
+        # print(windspeeds)
 
     # calculate power developed for each turbine
     for i in range(0, initial_num):
@@ -455,7 +455,7 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                     p1 = temp1 * probwui[wd][spd]
                     pwr.append(p1)
         power[i] = [this_power for this_power in pwr]
-    print(percent)
+    # print(percent)
     if extra:
         return power, windspeeds
     else:
