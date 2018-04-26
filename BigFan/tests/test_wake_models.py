@@ -9,7 +9,7 @@ ME 599 Project - Spring 2018
 """
 
 import pytest
-from BigFan import wake_models as wm
+from .. import wake_models as wm
 
 
 def test_Jensen_3D():
