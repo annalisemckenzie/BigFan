@@ -8,9 +8,9 @@ Unit tests for objectives.py
 ME 599 Project - Spring 2018
 """
 
-from BigFan import objectives as obj
-from BigFan import cost_models as cm
-from BigFan import wake_models as wm
+from .. import objectives as obj
+from .. import cost_models as cm
+from .. import wake_models as wm
 
 
 # test Cost
