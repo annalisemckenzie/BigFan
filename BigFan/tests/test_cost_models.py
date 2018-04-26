@@ -8,7 +8,7 @@ Unit tests for cost_models.py
 ME 599 Project - Spring 2018
 """
 
-from BigFan import cost_models
+from .. import cost_models
 
 
 def test_offshore_cost():
