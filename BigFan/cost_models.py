@@ -14,6 +14,26 @@ import numpy as np
 
 def offshore_cost(xlocs, ylocs, rr, hh, ro, Uref, Cp, depth, yrs,
                   WCOE, availability, distance_to_shore):
+    """Compute Cost of Farm using Forinash offshore cost model
+
+    Args:
+        xlocs: list of x-coordinates of wind turbines at one wind onset angle
+        ylocs: list of y-coordinates of wind turbines at one wind onset angle
+        rr: list of rotor radii for each turbine
+        hh: list of hub heights for each turbine
+        ro: air density (float)
+        Uref: ambient wind speed (float)
+        Cp: power coefficient (float)
+        depth: water depth in meters (float)
+        yrs: lifetime of wind farm in years (float)
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
+        availability: turbine availability (float)
+        distance_to_shore: distance from farm to shore (float)
+    Returns:
+        costc: capital costs of farm
+        costa: cumulative annual farm costs
+
+    """
     costc = 0.0
     costa = 0.0
     Capital_Cost = 0
@@ -48,6 +68,17 @@ def offshore_cost(xlocs, ylocs, rr, hh, ro, Uref, Cp, depth, yrs,
 
 
 def closest(j, xlocs, ylocs, hood_size):
+    """Find the closest turbines to a given turbine for use in minimum spanning
+        tree
+    Args:
+        j: index of turbine in question
+        xlocs: list of x-coordinates of wind turbines at one wind onset angle
+        ylocs: list of y-coordinates of wind turbines at one wind onset angle
+        hood_size: number of closest turbines to return
+    Returns:
+        closest: ordered lost of closest turbines and the distance between them
+
+    """
     dist = []
     turb = []
     for count in range(len(xlocs)):
@@ -70,6 +101,16 @@ def closest(j, xlocs, ylocs, hood_size):
 
 
 def calcicl(xlocs, ylocs):
+    """Compute the minimum distance to connect all turbines in a farm
+
+    Args:
+        xlocs: list of x-coordinates of wind turbines at one wind onset angle
+        ylocs: list of y-coordinates of wind turbines at one wind onset angle
+    Returns:
+        icl: required array cable length
+        networks: turbine connections to achieve minimum spanning tree
+
+    """
     all_opt = []
     hood_size = min([5, len(xlocs) - 1])
     for i in range(len(xlocs)):
@@ -225,6 +266,27 @@ def calcicl(xlocs, ylocs):
 
 def onshore_cost(xlocs, ylocs, rr, hh, ro, Uref, Cp, depth, yrs,
                  WCOE, availability, distance_to_shore):
+    """Compute Cost of Farm using DuPont onshore cost surface derived from 
+        JEDI model
+
+    Args:
+        xlocs: list of x-coordinates of wind turbines at one wind onset angle
+        ylocs: list of y-coordinates of wind turbines at one wind onset angle
+        rr: list of rotor radii for each turbine
+        hh: list of hub heights for each turbine
+        ro: air density (float)
+        Uref: ambient wind speed (float)
+        Cp: power coefficient (float)
+        depth: water depth in meters (float) - not used
+        yrs: lifetime of wind farm in years (float)
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
+        availability: turbine availability (float)
+        distance_to_shore: distance from farm to shore (float) - not used
+    Returns:
+        costc: capital costs of farm
+        costa: cumulative annual farm costs
+
+    """
     Project = 0.
     Ptot = 0.
     for l in range(len(xlocs)):

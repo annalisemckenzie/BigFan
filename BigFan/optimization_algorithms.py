@@ -13,12 +13,19 @@ import numpy as np
 import random
 
 
-# NOTES TO ANNALISE:
-#     Change inputs to EPS
-#     Change inputs to GA
-
-
 def Check_Interference(xlocation, ylocation, index, turbine_sep_distance):
+    """Check interference between turbines
+
+    Args:
+        xlocation: list of x-coordinates of wind turbines where each item
+            is a list of x-locations for each onset wind angle
+        ylocation: list of y-coordinates of wind turbines where each item
+            is a list of y-locations for each onset wind angle
+        index: index number of turbine being checked for constraint violation
+        turbine_sep_distance: required turbine separation distance
+    Returns:
+        constraint violation flag
+    """
     interference = False  # Is a constraint violated?
     if index != 'pop':
         # identify turbine of interest
@@ -45,13 +52,28 @@ def Check_Interference(xlocation, ylocation, index, turbine_sep_distance):
                 if checkrad < turbine_sep_distance:
                     interference = True
                     return interference
-    # print('interference')
-    # print(interference)
     return interference
 
 
 def translate_x(xlocation, ylocation, step_size, index, farm_x,
                 turbine_sep_distance, directions):
+    """Translate a specific turbine in the x-direction
+
+    Args:
+        xlocation: list of x-coordinates of wind turbines where each item
+            is a list of x-locations for each onset wind angle
+        ylocation: list of y-coordinates of wind turbines where each item
+            is a list of y-locations for each onset wind angle
+        step_size: distance you're moving turbine
+        index: index number of turbine
+        farm_x: length of farm in the x-direction
+        turbine_sep_distance: required turbine separation distance
+        directions: onset wind angles
+    Returns:
+        constraint violation flag
+        new turbine xlocations for each onset angle
+        new turbine ylocations for each onset angle
+    """
     transflag = False
     xstart = xlocation[index][0]
     # print(xstart, step_size)
@@ -80,6 +102,23 @@ def translate_x(xlocation, ylocation, step_size, index, farm_x,
 
 def translate_y(xlocation, ylocation, step_size, index, farm_y,
                 turbine_sep_distance, directions):
+    """Translate a specific turbine in the y-direction
+
+    Args:
+        xlocation: list of x-coordinates of wind turbines where each item
+            is a list of x-locations for each onset wind angle
+        ylocation: list of y-coordinates of wind turbines where each item
+            is a list of y-locations for each onset wind angle
+        step_size: distance you're moving turbine
+        index: index number of turbine
+        farm_y: length of farm in the y-direction
+        turbine_sep_distance: required turbine separation distance
+        directions: onset wind angles
+    Returns:
+        constraint violation flag
+        new turbine xlocations for each onset angle
+        new turbine ylocations for each onset angle
+    """
     transflag = False
     ystart = ylocation[index][0]
     # find preliminary new y-location given step size
@@ -106,6 +145,13 @@ def translate_y(xlocation, ylocation, step_size, index, farm_y,
 
 
 def Rand_Vector(initial_num):
+    """Create random turbine order for EPS
+
+    Args:
+        initial_num: number of turbines being optimized
+    Returns:
+        random order of those turbines
+    """
     random_vec = []
     for i in range(0, initial_num):
         random_vec.append(i)
@@ -125,6 +171,56 @@ def EPS(xlocation, ylocation, init_step, minstep,
         max_pop_tries, aif, farm_x, farm_y, turb_sep, Eval_Objective,
         Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in, rated, cut_out,
         Cp, availability, nwp, extra, depth, distance_to_shore, a, directions):
+    """Extended Pattern Search
+
+    Args:
+        xlocation: list of x-coordinates of wind turbines where each item
+            is a list of x-locations for each onset wind angle
+        ylocation: list of y-coordinates of wind turbines where each item
+            is a list of y-locations for each onset wind angle
+        init_step: initial step size for EPS
+        minstep: smallest step size for EPS
+        z0: wind farm surface roughness in meters (float)
+        U0: list of onset wind speeds in m/s
+        Zref: Wind speed reference height
+        alphah: power law exponent
+        ro: air density (float)
+        yrs: lifetime of wind farm in years (float)
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
+        num_pops: number of poor performing turbines popped each round
+        max_pop_tries: number of times a single turbine may attempt
+            a new location in the popping algorithm
+        aif: axial induction factor (float)
+        farm_x: length of wind farm in x direction in meters (float)
+        farm_y: length of wind farm in y direction in meters (float)
+        turb_sep: minimum tubine separation requirement
+        Eval_Objective: objective being minimized by EPS
+        Compute_Wake: function encapsulating wake model
+        Compute_Cost: function encapsulating cost model
+        probwui: list of lists for probability of onset wind conditions
+            first index represets onset wind direction index
+            second index represents onset wind speed index
+        rr: list of rotor radii for each turbine
+        hh: list of hub heights for each turbine 
+        cut_in: turbine cut-in wind speed (float)
+        rated: turbine rated wind speed (float)
+        cut-out: turbine cut-out speed (float)
+        Cp: power coefficient (float)
+        availability: turbine availability (float)
+        nwp: whether to use the nested wake provision (True/False)
+        extra: whether to provide turbine windspeeds and total cost 
+            in addition to objective and power output
+        depth: water depth in meters (float)
+        distance_to_shore: distance from farm to shore (float)
+        a: annuity factor (float)
+        directions: list of onset wind angles
+    Returns:
+        optimized turbine xlocation
+        optimized turbine ylocation
+        optimized turbine power
+        optimized objctive
+        Number of objective evaluations until convergence
+    """
     initial_num = len(xlocation)
     stopped = [0] * initial_num
     # Clear_Vectors()
@@ -649,6 +745,56 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
              farm_y, turb_sep, Eval_Objective, Compute_Wake, Compute_Cost,
              probwui, rr, hh, cut_in, rated, cut_out, Cp, availability, nwp,
              extra, depth, distance_to_shore, a, directions, mesh_width):
+    """Discretized Extended Pattern Search
+
+    Args:
+        xlocation: list of x-coordinates of wind turbines where each item
+            is a list of x-locations for each onset wind angle
+        ylocation: list of y-coordinates of wind turbines where each item
+            is a list of x-locations for each onset wind angle
+        init_step: initial step size for EPS
+        minstep: smallest step size for EPS
+        z0: wind farm surface roughness in meters (float)
+        U0: list of onset wind speeds in m/s
+        Zref: Wind speed reference height
+        alphah: power law exponent
+        ro: air density (float)
+        yrs: lifetime of wind farm in years (float)
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
+        num_pops: number of poor performing turbines popped each round
+        max_pop_tries: number of times a single turbine may attempt
+            a new location in the popping algorithm
+        aif: axial induction factor (float)
+        farm_x: length of wind farm in x direction in meters (float)
+        farm_y: length of wind farm in y direction in meters (float)
+        turb_sep: minimum tubine separation requirement
+        Eval_Objective: objective being minimized by EPS
+        Compute_Wake: function encapsulating wake model
+        Compute_Cost: function encapsulating cost model
+        probwui: list of lists for probability of onset wind conditions
+            first index represets onset wind direction index
+            second index represents onset wind speed index
+        rr: list of rotor radii for each turbine
+        hh: list of hub heights for each turbine 
+        cut_in: turbine cut-in wind speed (float)
+        rated: turbine rated wind speed (float)
+        cut-out: turbine cut-out speed (float)
+        Cp: power coefficient (float)
+        availability: turbine availability (float)
+        nwp: whether to use the nested wake provision (True/False)
+        extra: whether to provide turbine windspeeds and total cost 
+            in addition to objective and power output
+        depth: water depth in meters (float)
+        distance_to_shore: distance from farm to shore (float)
+        a: annuity factor (float)
+        directions: list of onset wind angles
+    Returns:
+        optimized turbine xlocation
+        optimized turbine ylocation
+        optimized turbine power
+        optimized objctive
+        Number of objective evaluations until convergence
+    """
     initial_num = len(xlocation)
     eval_ct = 0
     Stopped = [0 for i in initial_num]
@@ -1020,6 +1166,20 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
 
 def translate_chromosome(chromosome, binary_x, options_x,
                          binary_y, options_y, mesh_size, directions):
+    """Translate binary chromosome to cardinal coordinates
+
+    Args:
+        chromosome: binary list to be converted to turbine layout
+        binary_x: number of binary values in an x-coordinate
+        options_x: number of positions a turbine can take in the x-direction
+        binary_y: number of binary values in a y-coordinate
+        options_y: number of positions a turbine can take in the y-direction
+        mesh_size: width of square of mesh
+        directions: onset wind angles
+    Returns:
+        xlocations of chromosome from every onset angle
+        ylocations of chromosome from every onset angle
+    """
     x = []  # xlocs
     y = []  # ylocs
     k = 0  # actual gene you're on
@@ -1075,11 +1235,58 @@ def translate_chromosome(chromosome, binary_x, options_x,
 
 
 def GA(mesh_size, elite, mateable_range, mutation_rate,
-       z0, U0, Zref, alphah, ro, yrs, WCOE, condition, population_size,
+       z0, U0, Zref, alphah, ro, yrs, WCOE, population_size,
        generations_to_converge, aif, farm_x, farm_y, turb_sep, Eval_Objective,
        wind_directions, Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in,
        rated, cut_out, Cp, availability, nwp, extra, depth,
        distance_to_shore, a, directions):
+    """Genetic Algorithm
+
+    Args:
+        mesh_size: width of mesh for GA
+        elite: proportion of best chromosomes copied from last generation
+        mateable_range: proportion of best chromosomes that are allowed to mate
+        z0: wind farm surface roughness in meters (float)
+        U0: list of onset wind speeds in m/s
+        Zref: Wind speed reference height
+        alphah: power law exponent
+        ro: air density (float)
+        yrs: lifetime of wind farm in years (float)
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
+        population_size: population size
+        generations_to_convergence: number of generations with same best layout
+            before algorithm is considered converged
+        aif: axial induction factor (float)
+        farm_x: length of wind farm in x direction in meters (float)
+        farm_y: length of wind farm in y direction in meters (float)
+        turb_sep: minimum tubine separation requirement
+        Eval_Objective: objective being minimized by EPS
+        Compute_Wake: function encapsulating wake model
+        Compute_Cost: function encapsulating cost model
+        probwui: list of lists for probability of onset wind conditions
+            first index represets onset wind direction index
+            second index represents onset wind speed index
+        rr: list of rotor radii for each turbine
+        hh: list of hub heights for each turbine 
+        cut_in: turbine cut-in wind speed (float)
+        rated: turbine rated wind speed (float)
+        cut-out: turbine cut-out speed (float)
+        Cp: power coefficient (float)
+        availability: turbine availability (float)
+        nwp: whether to use the nested wake provision (True/False)
+        extra: whether to provide turbine windspeeds and total cost 
+            in addition to objective and power output
+        depth: water depth in meters (float)
+        distance_to_shore: distance from farm to shore (float)
+        a: annuity factor (float)
+        directions: list of onset wind angles
+    Returns:
+        optimized turbine xlocation
+        optimized turbine ylocation
+        optimized turbine power
+        optimized objctive
+        Number of objective evaluations until convergence
+    """
     if farm_x % mesh_size != 0 or farm_y % mesh_size != 0:
         raise ValueError('error: one or more farm dimension is not '
                          + 'evenly divisible by the mesh size')
@@ -1208,6 +1415,55 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
         WCOE, Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in, rated,
         cut_out, Cp, availability, nwp, extra, depth, distance_to_shore,
         a, directions):
+    """Compute the total cost of a farm
+
+    Args:
+        self_weight: weight given to individual's best past evaluation
+        global_weight: weight given to the swarm's best past evaulation
+        swarm_size: number of individuals in the swarm
+        initial_num: number of turbines being optimized
+        farm_x: length of wind farm in x direction in meters (float)
+        farm_y: length of wind farm in y direction in meters (float)
+        turb_sep: minimum tubine separation requirement
+        generations_to_converge: number of generations without improvement
+            before algorithm is considered converged
+        Eval_Objective: objective being minimized by EPS
+        constraint_scale: the weight given to constraint violations in
+            calculating the objective evaluation
+        z0: wind farm surface roughness in meters (float)
+        U0: list of onset wind speeds in m/s
+        Zref: Wind speed reference height
+        alphah: power law exponent
+        ro: air density (float)
+        aif: axial induction factor (float)
+        yrs: lifetime of wind farm in years (float)
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
+        Compute_Wake: function encapsulating wake model
+        Compute_Cost: function encapsulating cost model
+        probwui: list of lists for probability of onset wind conditions
+            first index represets onset wind direction index
+            second index represents onset wind speed index
+        rr: list of rotor radii for each turbine
+        hh: list of hub heights for each turbine 
+        cut_in: turbine cut-in wind speed (float)
+        rated: turbine rated wind speed (float)
+        cut-out: turbine cut-out speed (float)
+        Cp: power coefficient (float)
+        availability: turbine availability (float)
+        nwp: whether to use the nested wake provision (True/False)
+        extra: whether to provide turbine windspeeds and total cost 
+            in addition to objective and power output
+        depth: water depth in meters (float)
+        distance_to_shore: distance from farm to shore (float)
+        a: annuity factor (float)
+        directions: list of onset wind angles
+    Returns:
+        optimized turbine xlocation
+        optimized turbine ylocation
+        optimized turbine power
+        optimized objctive
+        Number of objective evaluations until convergence
+    """
     evals = 0
     # create random layouts for swarm members
     current_x = []  # population x-coordinates

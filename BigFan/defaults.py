@@ -64,6 +64,7 @@ nwp = False
 extra = False
 
 # Optimization Defaults
+optimize = False
 a = 17.19  # annuity factor for 1.5% interest rate
 # (US Fed Reserve rate Jan 2018)
 Eval_Objective = LCOE
@@ -89,3 +90,5 @@ global_weight = 0.001
 swarm_size = 100  # same as population size but for pso
 initial_num = 30.
 constraint_scale = 0.5  # I haven't found the best value for this
+# CFD
+mlDenom = 2.  # mixing length denominator

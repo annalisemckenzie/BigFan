@@ -9,15 +9,84 @@ Spring 2018
 Wake Models
 """
 
+try:
+    from dolfin import near
+    from dolfin import grad
+    from dolfin import inner
+    from dolfin import dx
+    from dolfin import div
+    from dolfin import Constant
+    from dolfin import Expression
+    from dolfin import Function
+    from dolfin import project
+    from dolfin import SubDomain
+    from dolfin import RectangleMesh
+    from dolfin import Point
+    from dolfin import VectorElement
+    from dolfin import FiniteElement
+    from dolfin import FunctionSpace
+    from dolfin import MixedElement
+    from dolfin import VectorFunctionSpace
+    from dolfin import CellFunction
+    from dolfin import cells
+    from dolfin import SpatialCoordinate
+    from dolfin import refine
+    from dolfin import DirichletBC
+    from dolfin import TestFunctions
+    from dolfin import NonlinearVariationalProblem
+    from dolfin import derivative
+    from dolfin import NonlinearVariationalSolver
+    from dolfin import split
+    nofenics = False
+except ModuleNotFoundError:
+    print('warning: fenics is not installed or the fenicsproject nvironment '
+          + 'is not activated. The CFD wake model is not available')
+    nofenics = True
 import numpy as np
+import matplotlib.pyplot as plt
+import random as rd
 
 # NOTES TO ANNALISE:
-#     Add CFD model
+#     Change CFD inputs to get rid of axle spin
 
 
 def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
             ro, aif, farm_y, cut_in, rated, cut_out, Cp,
             availability, nwp=False, extra=False):
+    """Compute the turbine power generation (and optionally turbine wind speed)
+        using 3D Jensen (PARK) wake model
+
+    Args:
+        xlocs: list of x-coordinates of wind turbines where each item in the 
+                list is a list of that turbine's x-coordinate at each
+                wind onset angle
+        ylocs: list of y-coordinates of wind turbines where each item in the 
+                list is a list of that turbine's y-coordinate at each
+                wind onset angle
+        rr: list of rotor radii for each turbine
+        hh: list of hub heights for each turbine
+        z0: wind farm surface roughness in meters (float)
+        U0: list of onset wind speeds in m/s
+        probwui: list of lists for probability of onset wind conditions
+            first index represets onset wind direction index
+            second index represents onset wind speed index
+        Zref: Wind speed reference height
+        alphah: power law exponent
+        ro: air density (float)
+        aif: axial induction factor (float)
+        farm_y: length of wind farm in y direction in meters (float)
+        cut_in: turbine cut-in wind speed (float)
+        rated: turbine rated wind speed (float)
+        cut-out: turbine cut-out speed (float)
+        Cp: power coefficient (float)
+        availability: turbine availability (float)
+        nwp: whether to use the nested wake provision (True/False)
+        extra: whether to provide turbine windspeeds and total cost 
+            in addition to objective and power output
+    Returns:
+        list of turbine power output by [turbine no.][onset angle index]
+        windspeeds: windspeed by [turbine no.][onset angle index] (optional)
+    """
     initial_num = len(xlocs)
     num_directions = len(xlocs[0])
     wdsp_list = [[0.] * len(U0) for ii in range(initial_num)]
@@ -92,36 +161,6 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         usturbines[j] = upstrm
         wakewidths[j] = wakewidthds
         distances[j] = distanceus
-
-        # print('usturbines for ', i, ': ',turbines[i].usturbines)
-        # print('wakewidth for ', j, ': ',turbines[j].wakewidth)
-        # print('distances for ', j, ': ',turbines[j].distance)
-
-    #    for i in range(0, initial_num):
-    #        dsds = []
-    #        for d in range(0, direction):
-    #            dsone = []
-    #            for j in range(0, initial_num):
-    #                if j != i:
-    #                    if i in turbines[j].usturbines[d]:
-    #                        dsone.append(j)
-    #            dsds.append(dsone)
-    #        turbines[i].dsturbines = dsds
-    #        # print('dsturbines for ', j, ': ',turbines[j].dsturbines)
-
-    #    code check
-    #    print(turbines[7].dsturbines[0])
-    #    print(turbines[7].dsturbinesrec)
-    #    print(turbines[7].usturbines[0])
-    #    print(turbines[7].usturbinesrec)
-    #    print(turbines[7].wakewidth)
-    #    print(turbines[7].distance)
-    #    print(turbines[4].dsturbines[0])
-    #    print(turbines[4].dsturbinesrec)
-    #    print(turbines[4].usturbines[0])
-    #    print(turbines[4].usturbinesrec)
-    #    print(turbines[4].wakewidth)
-    #    print(turbines[4].distance)
 
     # Now that we know which turbines are downstream of others,
     # calculate the percentage of the rotor swept area that is within the wake
@@ -250,8 +289,6 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         percent[i] = complete_percent
         xcoords[i] = dummyx
         zcoords[i] = dummyz
-    # Code Check
-    # Compute_Wake(initial_num, z0, U0, Zref, alphah, ro, aif)
 
     # calculate wind speed for each downstream turbine based
     # on downstream distance
@@ -465,6 +502,40 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
 def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
             ro, aif, farm_y, cut_in, rated, cut_out, Cp,
             availability, nwp=False, extra=False):
+    """Compute the turbine power generation (and optionally turbine wind speed)
+        using 2D Jensen (PARK) wake model
+
+    Args:
+        xlocs: list of x-coordinates of wind turbines where each item in the 
+                list is a list of that turbine's x-coordinate at each
+                wind onset angle
+        ylocs: list of y-coordinates of wind turbines where each item in the 
+                list is a list of that turbine's y-coordinate at each
+                wind onset angle
+        rr: list of rotor radii for each turbine
+        hh: list of hub heights for each turbine
+        z0: wind farm surface roughness in meters (float)
+        U0: list of onset wind speeds in m/s
+        probwui: list of lists for probability of onset wind conditions
+            first index represets onset wind direction index
+            second index represents onset wind speed index
+        Zref: Wind speed reference height
+        alphah: power law exponent
+        ro: air density (float)
+        aif: axial induction factor (float)
+        farm_y: length of wind farm in y direction in meters (float)
+        cut_in: turbine cut-in wind speed (float)
+        rated: turbine rated wind speed (float)
+        cut-out: turbine cut-out speed (float)
+        Cp: power coefficient (float)
+        availability: turbine availability (float)
+        nwp: whether to use the nested wake provision (True/False)
+        extra: whether to provide turbine windspeeds and total cost 
+            in addition to objective and power output
+    Returns:
+        list of turbine power output by [turbine no.][onset angle index]
+        windspeeds: windspeed by [turbine no.][onset angle index] (optional)
+    """
     if len(set(hh)) != 1:
         raise ValueError('multiple hub heights in 2D Park calculation')
     initial_num = len(xlocs)
@@ -539,36 +610,6 @@ def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         usturbines[j] = upstrm
         wakewidths[j] = wakewidthds
         distances[j] = distanceus
-
-        # print('usturbines for ', i, ': ',turbines[i].usturbines)
-        # print('wakewidth for ', j, ': ',turbines[j].wakewidth)
-        # print('distances for ', j, ': ',turbines[j].distance)
-
-    #    for i in range(0, initial_num):
-    #        dsds = []
-    #        for d in range(0, direction):
-    #            dsone = []
-    #            for j in range(0, initial_num):
-    #                if j != i:
-    #                    if i in turbines[j].usturbines[d]:
-    #                        dsone.append(j)
-    #            dsds.append(dsone)
-    #        turbines[i].dsturbines = dsds
-    #        # print('dsturbines for ', j, ': ',turbines[j].dsturbines)
-
-    #    code check
-    #    print(turbines[7].dsturbines[0])
-    #    print(turbines[7].dsturbinesrec)
-    #    print(turbines[7].usturbines[0])
-    #    print(turbines[7].usturbinesrec)
-    #    print(turbines[7].wakewidth)
-    #    print(turbines[7].distance)
-    #    print(turbines[4].dsturbines[0])
-    #    print(turbines[4].dsturbinesrec)
-    #    print(turbines[4].usturbines[0])
-    #    print(turbines[4].usturbinesrec)
-    #    print(turbines[4].wakewidth)
-    #    print(turbines[4].distance)
 
     # Now that we know which turbines are downstream of others,
     # calculate the percentage of the rotor swept area that is within the wake
@@ -881,6 +922,19 @@ def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
 
 
 def Discretize_RSA(xloc, hh, rad, D2=False):
+    """Discretize rotor swept area of a specific turbine and return x- and z-
+        coordinates
+
+    Args:
+        xlocs: x-location of turbine in question at onset angle in question
+        hh: hub height of turbine in question
+        rad: rotor radius of turbine in question
+        D2: whether a 2D representation is desired (True) or a 3D
+            representation (False)
+    Returns:
+        xcoords: x-coordinates of discretized rotor swept area
+        zcoords: z-coordinates of discretized rotor swept area
+    """
     if hh < 0:
         raise ValueError('Hub height specified is less than 0 m')
     if rad < 0.:
@@ -967,3 +1021,452 @@ def Discretize_RSA(xloc, hh, rad, D2=False):
         xcoords.append(xloc)
         zcoords.append(hh - rad)
     return xcoords, zcoords
+
+
+def create_mesh(mx, my, mz, ma, rad2, site_x, site_y, numx, numy, numRefine,
+                print_mesh=False, adaptive_meshing=True):
+    """Create farm mesh for use in CFD wind speed calculation
+
+    Args:
+        mx: list of x-coordinates of wind turbines from 0-degree onset wind
+            angle
+        my: list of y-coordinates of wind turbines from 0-degree onset wind
+            angle
+        ma: list of turbine axial induction factors
+        site_x: wind farm length in meters in x-directions (float)
+        site_y: wind farm length in meters in y-direction(float)
+        numx: number of pre-refinement mesh points in x-direction
+        numy: number of pre-refinement mesh points in y-directions
+        numRefine: numb of times all mesh points within the circle of the 
+            wind farm are refined
+        print_mesh: whether to print the final farm mesh
+        adaptive_meshing: whether to further refine the mesh size
+            in the immediate vecinity of individual turbines
+    Returns:
+        wind farm mesh for CFD analysis
+    """
+    Lx = site_x * 6.
+    Ly = site_y * 6.
+    mesh = RectangleMesh(Point(-Lx/2., -Ly/2.), Point(Lx/2., Ly/2.),
+                         numx, numy)
+    # h = mesh.hmin()
+    '''refine mesh twice in circumradius of farm'''
+    for nums in range(numRefine):
+        # print 'refining mesh'
+        mesh = refine_mesh(mesh, site_x, site_y, 'farm', mx, my, mz, ma, rad2)
+        # h = mesh.hmin()
+    if print_mesh:
+        mesh1 = []
+        for each in mesh.coordinates():
+            if abs(each[0]) < site_x and abs(each[1]) < site_y:
+                mesh1.append((float(each[0]), float(each[1])))
+    if adaptive_meshing:
+        mesh = refine_mesh(mesh, site_x, site_y, 'turbines', mx, my, mz,
+                           ma, rad2)
+    if print_mesh:
+        meshx2 = []
+        meshy2 = []
+        for each in mesh.coordinates():
+            in_X = abs(each[0]) < site_x
+            in_Y = abs(each[1]) < site_y
+            not_in = ((each[0], each[1]) not in mesh1)
+            if (in_X and in_Y and not_in):
+                meshx2.append(float(each[0]))
+                meshy2.append(float(each[1]))
+        plt.figure()
+        plt.scatter([iii[0] for iii in mesh1], [iii[1] for iii in mesh1],
+                    s=1, c='k')
+        plt.scatter(meshx2, meshy2, s=1, c='r')
+        plt.axis('equal')
+        # plt.scatter(mx,my,color = 'r', marker='*')
+        plt.savefig('mesh_vis_discEPS.png')
+    print('mesh size: ', len(mesh.coordinates()))
+    # h = mesh.hmin()
+    '''somehow setting up the mesh to store the values we need'''
+    # function spaces, mixed function space syntax not backwards compatible
+    V = VectorElement('Lagrange', mesh.ufl_cell(), 2)
+    Q = FiniteElement('Lagrange', mesh.ufl_cell(), 1)
+    VQ = FunctionSpace(mesh, MixedElement([V, Q]))
+    # NSE equations
+    V = VectorFunctionSpace(mesh, 'Lagrange', 2)
+    Q = FunctionSpace(mesh, 'Lagrange', 1)
+    return V, Q, VQ, mesh
+
+
+def refine_mesh(mesh, site_x, site_y, refine_where, mx, my, mz, ma, rad2):
+    """Refine farm mesh for use in CFD wind speed calculation
+
+    Args:
+        mesh: current mesh for refinement        
+        site_x: wind farm length in meters in x-directions (float)
+        site_y: wind farm length in meters in y-direction(float)
+        refine_where: refine about the 'farm' or about 'turbines'
+        mx: list of x-coordinates of wind turbines from 0-degree onset wind
+            angle
+        my: list of y-coordinates of wind turbines from 0-degree onset wind
+            angle
+        my: list of z-coordinates of wind turbines
+        ma: list of turbine axial induction factors
+        rad2: radius about turbines in which to refine mes
+    Returns:
+        wind farm mesh for CFD analysis
+    """
+    # refines the mesh around the site boundaries
+    h = mesh.hmin()
+    numturbs = len(mx)
+    cell_f = CellFunction('bool', mesh, False)
+    # create a mesh of the same size, where every cell is set to 'False'
+    if refine_where == 'farm':
+        for cell in cells(mesh):
+            dotdis = cell.midpoint()[0]**2 + cell.midpoint()[1]**2
+            if dotdis < (site_x**2 + site_y**2 + h):
+                cell_f[cell] = True
+                # if the midpoint of the cell is within the circumradius
+                # of the farm, change the cell's value to true
+    else:
+        for cell in cells(mesh):  # cycle through each cell
+            for i in range(numturbs):  # cycle through each turbine
+                xdis = pow(cell.midpoint()[0] - mx[i], 2)
+                ydis = pow(cell.midpoint()[1] - my[i], 2)
+                if (xdis + ydis) < (pow(rad2, 2) + h):
+                    cell_f[cell] = True
+                    # if the midpoint of the cell is within a radius of a
+                    # turbine
+    mesh = refine(mesh, cell_f)
+    # refine the cells within the circumradius of the farm
+    return mesh
+
+
+def createRotatedTurbineForce(mx, my, ma, A, beta, numturbs, alpha, V, mesh,
+                              WTGexp, thickness, Ct, radius, checkpts=False):
+    """Use Actuator disc theory to determine the force turbines 
+        amass on the environment
+
+    Args:
+        mx: list of x-coordinates of wind turbines from 0-degree onset wind
+            angle
+        my: list of y-coordinates of wind turbines from 0-degree onset wind
+            angle
+        my: list of z-coordinates of wind turbines
+        ma: list of turbine axial induction factors
+        A: rotor swept area of turbine in meters squared (float)
+        numbturbs: number of turbines in the field
+        alpha: wind onset angle
+        V: functional space defined over mesh
+        mesh: farm mesh
+        WTGexp: smoothing kernal exponent
+        thickness: smoothing kernal thickness parameter
+        Ct: thrust coefficient
+        radius: turbine rotor radius
+        checkpts: optionally print current turbine locations
+    Returns:
+        turbine forces across mesh
+    """
+    # beta = integral over actuator disk area in x and y: used to normalize
+    x = SpatialCoordinate(mesh)
+    WTGbase = project(Expression(("1.0", "0.0"), degree=2), V)
+    tf = Function(V)
+    # print(tf)
+    if checkpts:
+        check_it = project(tf, V)
+        n = [check_it(np.cos(alpha)*mx[i] - np.sin(alpha)*my[i],
+                      np.sin(alpha)*mx[i] + np.cos(alpha)*my[i]) for i in range(numturbs)]
+        nx = [(np.cos(alpha)*mx[i]
+               - np.sin(alpha)*my[i]) for i in range(numturbs)]
+        ny = [(np.sin(alpha)*mx[i]
+               + np.cos(alpha)*my[i]) for i in range(numturbs)]
+        fig, ax = plt.subplots()
+        ax.scatter(nx, ny)
+        for i, txt in enumerate(n):
+            ax.annotate(txt, (nx[i], ny[i]))
+        plt.savefig('initial_tf.png', bbox_inches='tight')
+    for i in range(numturbs):
+        # rotation
+        xrot = np.cos(alpha)*mx[i] - np.sin(alpha)*my[i]
+        yrot = np.sin(alpha)*mx[i] + np.cos(alpha)*my[i]
+        # print((xrot, yrot))
+        tf = tf + (0.5 * A * Ct / ((1. - ma[i]) ** 2)
+                   / beta * np.exp(-(((x[0] - xrot)/thickness)**WTGexp
+                                   + ((x[1] - yrot)/radius)**WTGexp))
+                   * WTGbase.copy(deepcopy=True))
+    if checkpts:
+        check_it = project(tf, V)
+        n = [check_it(np.cos(alpha)*mx[i] - np.sin(alpha)*my[i],
+                      np.sin(alpha)*mx[i] + np.cos(alpha)*my[i]) for i in range(numturbs)]
+        fig, ax = plt.subplots()
+        ax.scatter(nx, ny)
+        for i, txt in enumerate(n):
+            ax.annotate(txt, (nx[i], ny[i]))
+        plt.savefig('final_tf.png', bbox_inches='tight')
+    return tf
+
+
+def main(tf, wind_case, VQ, radius, wind_cases, Lx, Ly, mlDenom):
+    """Determine wind speeds across field
+
+    Args:
+        tf: turbine force exerted across mesh
+        VQ: mixed element functional stuff I don't totally understand
+        wind_cases: list of tuples with onset angle [0], and speed [1]
+        Lx: length of the extent of the mesh in the x-direction
+        Ly: Length of the extent of the mesh in the y-direction
+        mlDenom: mixing length denominator
+    Returns:
+        wind speed and pressure across mesh
+    """
+    nu = Constant(.00005)  # kinematic viscosity
+    f = Constant((0., 0.))
+    up_next = Function(VQ)
+    # up_next becomes tuple of vector and finite elements for wind speed
+    # and pressure
+    u_next, p_next = split(up_next)
+    # split vector (wind speed) and finite (pressure) elements?
+    v, q = TestFunctions(VQ)
+
+    class InitialConditions(Expression):
+        # inherits from Expression class in fenics
+
+        def __init__(self, **kwargs):
+            rd.seed(2)  # WHY IS THIS HERE?
+
+        def eval(self, values, x):
+            values[0] = wind_cases[wind_case][1]
+            values[1] = 0.0
+            values[2] = 0.0
+
+        def value_shape(self):
+            return (3,)
+
+    # boundary conditions
+    class NoSlipBoundary(SubDomain):
+        def inside(self, x, on_boundary):
+            # windspeed has w = 0 at top and bottom
+            return near(x[1]**2 - (Ly/2.)**2, 0.) and on_boundary
+
+    class InflowBoundary(SubDomain):
+        # windspeeed has u = inflow velocity and w = 0 at locations of inflow
+        def inside(self, x, on_boundary):
+            return near(x[0], -(Lx/2.)) and on_boundary
+
+    class PeriodicBoundary(SubDomain):
+
+        def inside(self, x, on_boundary):
+            # return True if on left or bottom boundary
+            # AND NOT on one of the two slave edges
+            return bool((near(x[0], -(Lx/2.)) or near(x[1], -(Ly/2.)))
+                        and (not (near(x[0], (Lx/2.)) or near(x[1], (Ly/2.))))
+                        and on_boundary)
+
+        def map(self, x, y):
+            if near(x[0], (Lx/2.)) and near(x[1], (Ly/2.)):
+                y[0] = x[0] - 2*(Lx/2.)
+                y[1] = x[1] - 2*(Ly/2.)
+            elif near(x[0], (Lx/2.)):
+                y[0] = x[0] - 2*(Lx/2.)
+                y[1] = x[1]
+            else:  # near(x[1], (Ly/2.)):
+                y[0] = x[0]
+                y[1] = x[1] - 2*(Ly/2.)
+
+    u0 = InitialConditions(degree=2)
+    up_next.interpolate(u0)
+
+    lmix = radius/mlDenom  # mixing lenth
+    # mean rate of strain tensor ... so confused
+    S = np.sqrt(2. * inner(0.5 * (grad(u_next)+grad(u_next).T),
+                           0.5 * (grad(u_next)+grad(u_next).T)))
+    nu_T = (lmix ** 2.) * S  # eddie viscosity
+
+    F = (inner(grad(u_next)*u_next, v) * dx
+         + (nu+nu_T)*inner(grad(u_next), grad(v)) * dx
+         - inner(div(v), p_next) * dx
+         - inner(div(u_next), q) * dx
+         - inner(f, v)*dx
+         + inner(tf*u_next[0]**2, v) * dx)
+    # lateral BC
+    bc1a = DirichletBC(VQ.sub(0).sub(1), Constant(0.0), NoSlipBoundary())
+
+    # inflow BC
+    bc2 = DirichletBC(VQ.sub(0), Constant((wind_cases[wind_case][1], 0.0)),
+                      InflowBoundary())
+    bc = [bc1a, bc2]
+    J = derivative(F, up_next)
+    problem = NonlinearVariationalProblem(F, up_next, bc, J=J)
+    solver = NonlinearVariationalSolver(problem)
+    prm = solver.parameters
+    solver.nonlinear_variational_solver = 'newton_solver'
+    prm["newton_solver"]["absolute_tolerance"] = 1E-8
+    prm["newton_solver"]["relative_tolerance"] = 1E-7
+    prm["newton_solver"]["maximum_iterations"] = 25
+    prm["newton_solver"]["relaxation_parameter"] = 1.0
+    prm["newton_solver"]["linear_solver"] = 'mumps'
+    solver.solve()
+    u_next, p_next = split(up_next)
+    return u_next, up_next
+
+
+def rotatedPowerFunction(alpha, A, beta, mx, my, ma, up,
+                         numturbs, V, mesh, air_density,
+                         Cp, checkpts, radius, heat=False):
+    """Determine power output by turbine
+
+    Args:
+        alpha: wind onset angle
+        A: turbine rotor swept area in meters squared (float)
+        beta:
+        mx: list of x-coordinates of wind turbines from 0-degree onset wind
+            angle
+        my: list of y-coordinates of wind turbines from 0-degree onset wind
+            angle
+        ma: list of turbine axial induction factors
+        up: windspeed and pressure across mesh
+        numturbs: number of turbines
+        V: 
+        mesh: input mesh
+        air_density: air density at farm
+        Cp: power coefficient (float)
+        checkpts: whether to print current turbine location
+        radius: turbine rotor radius
+        heat: whether to produce farm-wide heat map of wind speeds
+    Returns:
+        list of power output by turbine
+    """
+    J = []
+    if checkpts:
+        nx = [(np.cos(alpha)*mx[i]
+               - np.sin(alpha)*my[i]) for i in range(numturbs)]
+        ny = [(np.sin(alpha)*mx[i]
+               + np.cos(alpha)*my[i]) for i in range(numturbs)]
+        fig, ax = plt.subplots()
+        ax.scatter(nx, ny)
+        n = [up.sub(0)(nx[i], ny[i])[0] for i in range(numturbs)]
+        for i, txt in enumerate(n):
+            ax.annotate(txt, (nx[i], ny[i]))
+        plt.savefig('windspeeds.png', bbox_inches='tight')
+        plt.close()
+    for i in range(numturbs):
+        # rotation
+        xrot = np.cos(alpha) * mx[i] - np.sin(alpha) * my[i]
+        # -5 added by Annalise 12/14 to understand effects of smoothing kernal
+        yrot = np.sin(alpha)*mx[i] + np.cos(alpha)*my[i]
+        # print(up.sub(0)(xrot, yrot)[0])
+        J.append(0.5 * air_density * np.pi * (radius ** 2) * Cp
+                 / ((1. - float(ma[i])) ** 3) * (up.sub(0)(xrot, yrot)[0]**3))
+        # up.sub(0)(xrot,yrot)[0] --> up == u and p combined
+        # --> sub(0) == just u
+        # --> (xrot, yrot) == position of interest (center pt)
+        # --> [0] == x-velocity
+    if heat:
+        heat_out = [[]]
+        outvals = 500
+        nx = [(np.cos(alpha)*mx[i]
+               - np.sin(alpha)*my[i]) for i in range(numturbs)]
+        ny = [(np.sin(alpha)*mx[i]
+               + np.cos(alpha)*my[i]) for i in range(numturbs)]
+        interval_x = (max(nx) - min(nx)) * 2. / outvals
+        if interval_x > 0.01:
+            x_start = min(nx) - (max(nx) - min(nx)) * 0.5 + interval_x / 2.
+            x1 = min(nx) - (max(nx) - min(nx)) * 0.5
+            x2 = max(nx) + (max(nx) - min(nx)) * 0.5
+        else:
+            x_start = min(nx) - 100. + 200. / (2. * outvals)
+            interval_x = 200. / outvals
+            x1 = min(nx) - 100.
+            x2 = max(nx) + 100.
+        interval_y = (max(ny) - min(ny)) * 2. / outvals
+        if interval_y > 0.01:
+            y_start = min(ny) - (max(ny) - min(ny)) * 0.5 + interval_y / 2.
+            y1 = min(ny) - (max(ny) - min(ny)) * 0.5
+            y2 = max(ny) + (max(ny) - min(ny)) * 0.5
+        else:
+            y_start = min(ny) - 100. + 200. / (2. * outvals)
+            interval_y = 200. / outvals
+            y1 = min(ny) - 100.
+            y2 = max(ny) + 100.
+        spacing_outx = [i * interval_x + x_start for i in range(outvals)]
+        sp_y = [i * interval_y + y_start for i in range(outvals)]
+        spacing_outy = [sp_y[-i] for i in range(1, len(sp_y) + 1)]
+        for j in spacing_outy:
+            heat_out[0].append([up.sub(0)(i, j)[0] for i in spacing_outx])
+        heat_out.append([x1, x2, y1, y2])
+        # print(heat_out)
+        return J, heat_out
+    else:
+        return J
+
+
+def CFD_wake(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
+             ro, aif, farm_y, cut_in, rated, cut_out, Cp,
+             availability, rad2, nwp=False, extra=False, adaptive_mesh=True):
+    """Compute the turbine power generation (and optionally turbine wind speed)
+        using WindSE2D CFD wake model
+
+    Args:
+        xlocs: list of x-coordinates of wind turbines where each item in the 
+                list is a list of that turbine's x-coordinate at each
+                wind onset angle
+        ylocs: list of y-coordinates of wind turbines where each item in the 
+                list is a list of that turbine's y-coordinate at each
+                wind onset angle
+        rr: list of rotor radii for each turbine
+        hh: list of hub heights for each turbine
+        z0: wind farm surface roughness in meters (float)
+        U0: list of onset wind speeds in m/s
+        probwui: list of lists for probability of onset wind conditions
+            first index represets onset wind direction index
+            second index represents onset wind speed index
+        Zref: Wind speed reference height
+        alphah: power law exponent
+        ro: air density (float)
+        aif: axial induction factor (float)
+        farm_y: length of wind farm in y direction in meters (float)
+        cut_in: turbine cut-in wind speed (float)
+        rated: turbine rated wind speed (float)
+        cut-out: turbine cut-out speed (float)
+        Cp: power coefficient (float)
+        availability: turbine availability (float)
+        nwp: whether to use the nested wake provision (True/False)
+        extra: whether to provide turbine windspeeds and total cost 
+            in addition to objective and power output
+    Returns:
+        list of turbine power output by [turbine no.][onset angle index]
+        windspeeds: windspeed by [turbine no.][onset angle index] (optional)
+    """
+    if nofenics:
+        raise ModuleNotFoundError('The fenicsproject environment is not '
+                                  + 'available. Ensure project is installed '
+                                  + 'and environemt is activated')
+    if len(set(hh)) != 1:
+        raise ValueError('More than one hub height specified for '
+                         + '2D simulation')
+    if hh[0] != Zref:
+        # INCORPORATE POWER LAW!
+        for ws in range(len(U0)):
+            U0[ws] = U0[ws] * ((hh[0] / Zref) ** alphah)
+    J = 0.
+    cumulative_power = [0.] * len(xlocs)
+    for i in range(len(xlocs[0])):  # for each wind direction
+        mx = [k[i] for k in xlocs]
+        my = [k[i] for k in ylocs]
+        ma = [aif] * len(mx)
+        for j in range(len(U0)):  # for each wind speed
+            V, Q, VQ, mesh = create_mesh(mx, my, hh, ma, rad2)
+            # print(wind_cases)
+            tf_rot = createRotatedTurbineForce(mx, my, ma, A, B, numturbs,
+                                               wind_cases[i][0], V, mesh)
+            # calculate force imparted by turbines
+            u_rot, up_rot = main(tf_rot, i, VQ)  # RANS solver
+            if heat and i == 0:
+                # only calc heat for wind from left
+                power_dev, heat_out = rotatedPowerFunction(wind_cases[i][0], A,
+                                                           beta, mx, my, ma,
+                                                           up_rot, numturbs, V,
+                                                           mesh, True)
+            else:
+                power_dev = rotatedPowerFunction(wind_cases[i][0], A, beta, mx,
+                                                 my, ma, up_rot, numturbs, V,
+                                                 mesh)
+            J = J - (weights[i] * sum(power_dev))
+            cumulative_power = [(k * weights[i]
+                                 + jj) for k, jj in zip(power_dev,
+                                                        cumulative_power)]

@@ -1,184 +1,100 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Apr 12 11:30:34 2018
+Created on Tue Apr 24 11:18:56 2018
 
 @author: Annalise
+
+ME 599 Project
+Spring 2018
+Main
 """
 
-import tkinter as tk
-from tkinter import ttk
+import xlrd
+import os
 
+# point to location of inputs
+dir_path = os.path.dirname(os.path.realpath(__file__))
+dir_path = os.path.join(dir_path, 'inputs.xlsxs')
+wb = xlrd.open_workbook(dir_path)
+sheet = wb.sheet_by_index(0)
 
-LARGE_FONT = ("Verdan", 12)
+# Take variables from input spreadsheet
+YLocations = [[(i % 10) * 200.] for i in range(10)]
+XLocations = [[int(i / 10) * 1000.] for i in range(10)]
+rr = [77. / 2. for i in range(10)]
+hh = [80. for i in range(10)]
+aif = 0.314
+farm_x = 2000.  # length of farm in crosswind dierection
+farm_y = 2000.  # length of farm in downwind direction
+cut_in = 3.5  # m/s - default GE 1.5 sle turbine
+rated = 12  # m/s - default GE 1.5 sle turbine
+cut_out = 25  # m/s - default GE 1.5 sle turbine
+Cp = 0.5
+availability = 0.95  # common assumption for turbine availability
+depth = 200.  # ocean depth (m)
+yrs = 20.  # farm life (years)
+WCOE = 0.1  # electrical price per kilowatt-hour
+distance_to_shore = 32.  # distance to shore (length of export cable) - km
+turb_sep = 200.  # minimum turbine separation distance (m)
+directions = [0.]  # onset angle in degrees
 
+# Default environmental variables
+shore = 'off'  # default to offshore
+if shore == 'off':
+    z0 = 0.0005  # surface roughness (m)
+elif shore == 'on':
+    z0 = 0.05
+U0 = [10.]  # constant speed conditions
+probwui = [[1.]]  # unidirectional, constant speed conditions
+Zref = hh[0]  # reference height is at hub height
+condition = 'NEUTRAL'
+if condition == "NEUTRAL":
+    APow = 0.08835  # Neutral Conditions: WDC(h) = APow*h^BPow
+    BPow = -0.1521
+    if shore == 'off':
+        alphah = 0.11  # Power Law Exponent (averaged over seasons)
+    elif shore == 'on':
+        alphah = 0.15567  # Power Law Exponent (averaged over seasons)
 
-def print_output(string_to_print):
-    print(string_to_print)
+elif condition == "STABLE":
+    APow = 0.07535
+    BPow = -0.1496
+    alphah = 0.14
 
+elif condition == "UNSTABLE":
+    APow = 0.09759
+    BPow = -0.1352
+    alphah = 0.08
+ro = 1.225  # air density (kg/m^3)
+nwp = False
+extra = False
 
-class App(tk.Tk):
-    def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
-
-        tk.Tk.iconbitmap(self, default="dino_cropped_lines.ico")
-        tk.Tk.wm_title(self, "Annalise's Kick Ass Wind Modeling Program")
-
-        container = tk.Frame(self)
-        container.grid()
-        container.grid_rowconfigure(0, weight=1)
-        container.grid_columnconfigure(0, weight=1)
-        container.configure(background="black")
-        # set up future frames
-        self.frames = {}
-        for F in (StartPage, PageOne, PageTwo):
-            frame = F(container, self)
-            self.frames[F] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-        self.show_frame(StartPage)
-
-    def show_frame(self, cont):
-        frame = self.frames[cont]
-        frame.tkraise()
-
-
-class StartPage(tk.Frame):
-    def __init__(self, master, controller):
-        tk.Frame.__init__(self, master)
-        self.configure(background="black")
-        opening_message = ('This program allows users to optimize wind farms '
-                           + 'or analyze hard-coded turbine layouts!')
-        label0 = tk.Label(self, text=opening_message, bg="black", fg="white",
-                          font=LARGE_FONT)
-        label0.grid(row=0, column=1)
-        label = tk.Label(self, text="Start Page", bg="black", fg="purple",
-                         font=LARGE_FONT)
-        label.grid(row=0, column=0)
-
-        # select an analysis
-        message = ('Please select the analysis you wish to perform:')
-        label1 = tk.Label(self, text=message, bg="black", fg="white")
-        label1.grid(row=1, column=0, sticky=tk.E)
-        analysis_selection = tk.StringVar(self)
-        analyses = ["optimization", "layout analysis"]
-        analysis_selection.set("layout analysis")
-        analysis = ttk.OptionMenu(self, analysis_selection, *analyses)
-        analysis.grid(row=1, column=1, sticky=tk.W)
-
-#        button1 = ttk.Button(self, text="Visit Page 2",
-#                             command=lambda: controller.show_frame(PageTwo))
-#        button1.grid(row=2, column=0)
-
-        # analysis selection
-#        menu = tk.Menu(master)
-#        master.config(menu=menu, background="black")
-#        submenu = tk.Menu(menu)
-#        menu.add_cascade(label="file", menu=submenu)
-#        submenu.add_command(label="print results", command=print_output)
-#        submenu.add_command(label="exit", command=frame.quit)
-#
-#
-        # select optimization algorithm
-#        algorithm_message = ("Please select your desired "
-#                             + "optimization algorithm:")
-#        label3 = tk.Label(self, text=algorithm_message,
-#                          bg="black", fg="white")
-#        label3.grid(row=2, column=0, sticky=tk.E)
-#        algorithm_selection = tk.StringVar(master)
-#        alogrithms = ["Extended Pattern Search", "Genetic Algorithm",
-#                      "Particle Swarm Optimization"]
-#        algorithm_selection.set("Extended Pattern Search")
-#        algorithm = ttk.OptionMenu(self, algorithm_selection, *alogrithms)
-#        algorithm.grid(row=2, column=1, sticky=tk.W)
-
-        # select wake model
-        wake_message = ("Please select your wake model:")
-        label4 = tk.Label(self, text=wake_message,
-                          bg="black", fg="white")
-        label4.grid(row=3, column=0, sticky=tk.E)
-        wake_selection = tk.StringVar(master)
-        wake_models = ["Jensen 2D", "Jensen 3D",
-                       "Jensen 2D - NWP", "Jensen 3D - NWP",
-                       "WindSE2D (CFD)"]
-        wake_selection.set("Jensen 3D")
-        wake = ttk.OptionMenu(self, wake_selection, *wake_models)
-        wake.grid(row=3, column=1, sticky=tk.W)
-
-        # select onshore/offshore
-        shore_message = ("Please select your farm location:")
-        label5 = tk.Label(self, text=shore_message,
-                          bg="black", fg="white")
-        label5.grid(row=4, column=0, sticky=tk.E)
-        shore_selection = tk.StringVar(master)
-        shores = ["Onshore", "Offshore"]
-        shore_selection.set("Onshore")
-        shore = ttk.OptionMenu(self, shore_selection, *shores)
-        shore.grid(row=4, column=1, sticky=tk.W)
-
-        # select objective function
-        obj_message = ("Please select your objective:")
-        label6 = tk.Label(self, text=obj_message,
-                          bg="black", fg="white")
-        label6.grid(row=5, column=0, sticky=tk.E)
-        obj_selection = tk.StringVar(master)
-        objs = ["Annual energy production", "Cost per unit power",
-                "Profit", "Levelized cost of energy", "Cost"]
-        obj_selection.set("Annual energy production")
-        obj = ttk.OptionMenu(self, obj_selection, *objs)
-        obj.grid(row=5, column=1, sticky=tk.W)
-
-        vals_to_get = [analysis_selection, wake_selection,
-                       shore_selection, obj_selection]
-        button0 = ttk.Button(self, text="Get Values",
-                             command=lambda: self.get_values(vals_to_get,
-                                                             controller))
-        button0.grid(row=79, column=80)
-#        button1 = ttk.Button(self, text="Visit Page 1",
-#                             command=lambda: controller.show_frame(PageOne))
-#        button1.grid(row=80, column=80)
-
-    def get_values(self, values, controller):
-        inputs = [i.get() for i in values]
-        print(inputs)
-        controller.show_frame(PageOne)
-        return inputs
-
-#        # status label
-#        status_frame = tk.Frame(master)
-#        status_frame.grid(sticky=tk.S)
-#        status = tk.Label(status_frame, text="waiting for user input", bd=1,
-#                          relief=tk.SUNKEN, anchor=tk.E)
-#        status.grid(sticky=tk.E)
-
-
-class PageOne(tk.Frame):
-    def __init__(self, master, controller):
-        tk.Frame.__init__(self, master)
-        self.configure(background="black")
-        label = tk.Label(self, text="Page One", font=LARGE_FONT)
-        label.grid(row=0, column=0)
-        button1 = ttk.Button(self, text="Back to Home",
-                             command=lambda: controller.show_frame(StartPage))
-        button1.grid(row=1, column=0)
-        button2 = ttk.Button(self, text="To Page 2",
-                             command=lambda: controller.show_frame(PageTwo))
-        button2.grid(row=2, column=0)
-
-
-class PageTwo(tk.Frame):
-    def __init__(self, master, controller):
-        tk.Frame.__init__(self, master)
-        self.configure(background="black")
-        label = tk.Label(self, text="Page Two", font=LARGE_FONT)
-        label.grid(row=0, column=0)
-        button1 = ttk.Button(self, text="Back to Home",
-                             command=lambda: controller.show_frame(StartPage))
-        button1.grid(row=1, column=0)
-        button2 = ttk.Button(self, text="To Page One",
-                             command=lambda: controller.show_frame(PageOne))
-        button2.grid(row=2, column=0)
-
-
-if __name__ == "__main__":
-    app = App()
-    # Start GUI
-    app.mainloop()
+# Optimization Defaults
+optimize = False
+a = 17.19  # annuity factor for 1.5% interest rate
+# (US Fed Reserve rate Jan 2018)
+Eval_Objective = LCOE
+Compute_Wake = PARK_3D
+Compute_Cost = offshore_cost
+# EPS
+num_pops = 5  # number of turbines popped
+max_pop_tries = 1000  # number of popping attempts per turbine
+init_step = 400.  # initial step-size (m)
+minstep = 5.  # minimum step size (m)
+# GA
+mesh_size = 5  # mesh size (m)
+elite = 0.1  # percent of best scoring adults kept from last generation
+mateable_range = 0.8  # percent of best scoring adults allowed to mate
+mutation_rate = 0.05  # percent of chromosomes subject to random mutation
+population_size = 100  # number of layouts in each generation/swarm
+# GA/PSO
+generations_to_converge = 100  # number of generations with same best layout
+# before GA/PSO considered converged
+# PSO
+self_weight = 0.001
+global_weight = 0.001
+swarm_size = 100  # same as population size but for pso
+initial_num = 30.
+constraint_scale = 0.5  # I haven't found the best value for this
+# CFD
+mlDenom = 2.  # mixing length denominator
