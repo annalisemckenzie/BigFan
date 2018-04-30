@@ -10,33 +10,33 @@ Wake Models
 """
 
 try:
-    from dolfin import near
-    from dolfin import grad
-    from dolfin import inner
-    from dolfin import dx
-    from dolfin import div
-    from dolfin import Constant
-    from dolfin import Expression
-    from dolfin import Function
-    from dolfin import project
-    from dolfin import SubDomain
-    from dolfin import RectangleMesh
-    from dolfin import Point
-    from dolfin import VectorElement
-    from dolfin import FiniteElement
-    from dolfin import FunctionSpace
-    from dolfin import MixedElement
-    from dolfin import VectorFunctionSpace
-    from dolfin import CellFunction
-    from dolfin import cells
-    from dolfin import SpatialCoordinate
-    from dolfin import refine
-    from dolfin import DirichletBC
-    from dolfin import TestFunctions
-    from dolfin import NonlinearVariationalProblem
-    from dolfin import derivative
-    from dolfin import NonlinearVariationalSolver
-    from dolfin import split
+#    from dolfin import near
+#    from dolfin import grad
+#    from dolfin import inner
+#    from dolfin import dx
+#    from dolfin import div
+#    from dolfin import Constant
+#    from dolfin import Expression
+#    from dolfin import Function
+#    from dolfin import project
+#    from dolfin import SubDomain
+#    from dolfin import RectangleMesh
+#    from dolfin import Point
+#    from dolfin import VectorElement
+#    from dolfin import FiniteElement
+#    from dolfin import FunctionSpace
+#    from dolfin import MixedElement
+#    from dolfin import VectorFunctionSpace
+#    from dolfin import CellFunction
+#    from dolfin import cells
+#    from dolfin import SpatialCoordinate
+#    from dolfin import refine
+#    from dolfin import DirichletBC
+#    from dolfin import TestFunctions
+#    from dolfin import NonlinearVariationalProblem
+#    from dolfin import derivative
+#    from dolfin import NonlinearVariationalSolver
+#    from dolfin import split
     nofenics = False
 except ModuleNotFoundError:
     print('warning: fenics is not installed or the fenicsproject nvironment '
@@ -1022,7 +1022,7 @@ def Discretize_RSA(xloc, hh, rad, D2=False):
         zcoords.append(hh - rad)
     return xcoords, zcoords
 
-
+'''
 def create_mesh(mx, my, mz, ma, rad2, site_x, site_y, numx, numy, numRefine,
                 print_mesh=False, adaptive_meshing=True):
     """Create farm mesh for use in CFD wind speed calculation
@@ -1470,3 +1470,4 @@ def CFD_wake(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
             cumulative_power = [(k * weights[i]
                                  + jj) for k, jj in zip(power_dev,
                                                         cumulative_power)]
+'''
