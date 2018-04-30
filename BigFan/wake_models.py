@@ -1050,7 +1050,7 @@ def create_mesh(mx, my, mz, ma, rad2, site_x, site_y, numx, numy, numRefine,
     mesh = RectangleMesh(Point(-Lx/2., -Ly/2.), Point(Lx/2., Ly/2.),
                          numx, numy)
     # h = mesh.hmin()
-    '''refine mesh twice in circumradius of farm'''
+    # refine mesh twice in circumradius of farm
     for nums in range(numRefine):
         # print 'refining mesh'
         mesh = refine_mesh(mesh, site_x, site_y, 'farm', mx, my, mz, ma, rad2)
@@ -1082,7 +1082,7 @@ def create_mesh(mx, my, mz, ma, rad2, site_x, site_y, numx, numy, numRefine,
         plt.savefig('mesh_vis_discEPS.png')
     print('mesh size: ', len(mesh.coordinates()))
     # h = mesh.hmin()
-    '''somehow setting up the mesh to store the values we need'''
+    # somehow setting up the mesh to store the values we need
     # function spaces, mixed function space syntax not backwards compatible
     V = VectorElement('Lagrange', mesh.ufl_cell(), 2)
     Q = FiniteElement('Lagrange', mesh.ufl_cell(), 1)
