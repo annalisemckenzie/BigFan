@@ -26,14 +26,14 @@ def Check_Interference(xlocation, ylocation, index, turbine_sep_distance):
     Returns:
         constraint violation flag
     """
-    interference = False  # Is a constraint violated?
+    interference = False  # No constraint violated
     if index != 'pop':
         # identify turbine of interest
         xold = xlocation[index][0]
         yold = ylocation[index][0]
         # check for inerference with all other turbines
         for j, k in enumerate(xlocation):
-            if k != index:  # don't check turbine's interference with self
+            if j != index:  # don't check turbine's interference with self
                 checkx = xold - k[0]
                 checky = yold - ylocation[j][0]
                 # calculate distance between 2 turbines
@@ -152,6 +152,12 @@ def Rand_Vector(initial_num):
     Returns:
         random order of those turbines
     """
+    if initial_num < 1:
+        raise ValueError('Rand_Vector: fewer than one turbine '
+                         + 'being optimized')
+    if type(initial_num) != int:
+            raise ValueError('Rand_Vector: non-integer number of '
+                             + 'turbines being optimized')
     random_vec = []
     for i in range(0, initial_num):
         random_vec.append(i)
@@ -1180,6 +1186,11 @@ def translate_chromosome(chromosome, binary_x, options_x,
         xlocations of chromosome from every onset angle
         ylocations of chromosome from every onset angle
     """
+    for i in list(set(chromosome)):
+        if i != 0 and i != 1:
+            raise ValueError('chromosome composed of values other '
+                             + 'than 1 and 0')
+
     x = []  # xlocs
     y = []  # ylocs
     k = 0  # actual gene you're on
