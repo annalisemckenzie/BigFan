@@ -37,11 +37,11 @@ def cost(Compute_Wake, Compute_Cost,
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
         depth: water depth in meters (float)
         yrs: lifetime of wind farm in years (float)
-        WCOE: wholesale cost of energy in USD per killowatt-hour (float)       
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
         distance_to_shore: distance from farm to shore (float)
         a: annuity factor (float)
     Returns:
@@ -96,11 +96,11 @@ def profit(Compute_Wake, Compute_Cost,
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
         depth: water depth in meters (float)
         yrs: lifetime of wind farm in years (float)
-        WCOE: wholesale cost of energy in USD per killowatt-hour (float)       
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
         distance_to_shore: distance from farm to shore (float)
         a: annuity factor (float)
     Returns:
@@ -163,11 +163,11 @@ def COP(Compute_Wake, Compute_Cost,
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
         depth: water depth in meters (float)
         yrs: lifetime of wind farm in years (float)
-        WCOE: wholesale cost of energy in USD per killowatt-hour (float)       
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
         distance_to_shore: distance from farm to shore (float)
         a: annuity factor (float)
     Returns:
@@ -228,11 +228,11 @@ def LCOE(Compute_Wake, Compute_Cost,
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
         depth: water depth in meters (float)
         yrs: lifetime of wind farm in years (float)
-        WCOE: wholesale cost of energy in USD per killowatt-hour (float)       
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
         distance_to_shore: distance from farm to shore (float)
         a: annuity factor (float)
     Returns:
@@ -241,7 +241,6 @@ def LCOE(Compute_Wake, Compute_Cost,
         windspeeds: windspeed at each turbine (optional)
         total farm cost (optional)
     """
-    print('evaluating the objective')
     costlocx = [i[0] for i in xlocs]
     costlocy = [i[0] for i in ylocs]
     costc, costa = Compute_Cost(costlocx, costlocy, rr, hh, ro, rated, Cp,
@@ -298,11 +297,11 @@ def AEP(Compute_Wake, Compute_Cost,
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
         depth: water depth in meters (float)
         yrs: lifetime of wind farm in years (float)
-        WCOE: wholesale cost of energy in USD per killowatt-hour (float)       
+        WCOE: wholesale cost of energy in USD per killowatt-hour (float)
         distance_to_shore: distance from farm to shore (float)
         a: annuity factor (float)
     Returns:

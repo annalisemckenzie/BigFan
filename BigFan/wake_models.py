@@ -43,8 +43,6 @@ except ModuleNotFoundError:
           + 'is not activated. The CFD wake model is not available')
     nofenics = True
 import numpy as np
-import matplotlib.pyplot as plt
-import random as rd
 
 # NOTES TO ANNALISE:
 #     Change CFD inputs to get rid of axle spin
@@ -57,17 +55,17 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         using 3D Jensen (PARK) wake model
 
     Args:
-        xlocs: list of x-coordinates of wind turbines where each item in the 
+        xlocs: list of x-coordinates of wind turbines where each item in the
                 list is a list of that turbine's x-coordinate at each
                 wind onset angle
-        ylocs: list of y-coordinates of wind turbines where each item in the 
+        ylocs: list of y-coordinates of wind turbines where each item in the
                 list is a list of that turbine's y-coordinate at each
                 wind onset angle
         rr: list of rotor radii for each turbine
         hh: list of hub heights for each turbine
         z0: wind farm surface roughness in meters (float)
         U0: list of onset wind speeds in m/s
-        probwui: list of lists for probability of onset wind conditions
+        probwui: list of probabilities of onset wind conditions
             first index represets onset wind direction index
             second index represents onset wind speed index
         Zref: Wind speed reference height
@@ -81,7 +79,7 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
     Returns:
         list of turbine power output by [turbine no.][onset angle index]
@@ -506,17 +504,17 @@ def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         using 2D Jensen (PARK) wake model
 
     Args:
-        xlocs: list of x-coordinates of wind turbines where each item in the 
+        xlocs: list of x-coordinates of wind turbines where each item in the
                 list is a list of that turbine's x-coordinate at each
                 wind onset angle
-        ylocs: list of y-coordinates of wind turbines where each item in the 
+        ylocs: list of y-coordinates of wind turbines where each item in the
                 list is a list of that turbine's y-coordinate at each
                 wind onset angle
         rr: list of rotor radii for each turbine
         hh: list of hub heights for each turbine
         z0: wind farm surface roughness in meters (float)
         U0: list of onset wind speeds in m/s
-        probwui: list of lists for probability of onset wind conditions
+        probwui: list of probabilities of onset wind conditions
             first index represets onset wind direction index
             second index represents onset wind speed index
         Zref: Wind speed reference height
@@ -530,7 +528,7 @@ def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
     Returns:
         list of turbine power output by [turbine no.][onset angle index]
@@ -1022,6 +1020,7 @@ def Discretize_RSA(xloc, hh, rad, D2=False):
         zcoords.append(hh - rad)
     return xcoords, zcoords
 
+
 '''
 def create_mesh(mx, my, mz, ma, rad2, site_x, site_y, numx, numy, numRefine,
                 print_mesh=False, adaptive_meshing=True):
@@ -1037,7 +1036,7 @@ def create_mesh(mx, my, mz, ma, rad2, site_x, site_y, numx, numy, numRefine,
         site_y: wind farm length in meters in y-direction(float)
         numx: number of pre-refinement mesh points in x-direction
         numy: number of pre-refinement mesh points in y-directions
-        numRefine: numb of times all mesh points within the circle of the 
+        numRefine: numb of times all mesh points within the circle of the
             wind farm are refined
         print_mesh: whether to print the final farm mesh
         adaptive_meshing: whether to further refine the mesh size
@@ -1097,7 +1096,7 @@ def refine_mesh(mesh, site_x, site_y, refine_where, mx, my, mz, ma, rad2):
     """Refine farm mesh for use in CFD wind speed calculation
 
     Args:
-        mesh: current mesh for refinement        
+        mesh: current mesh for refinement
         site_x: wind farm length in meters in x-directions (float)
         site_y: wind farm length in meters in y-direction(float)
         refine_where: refine about the 'farm' or about 'turbines'
@@ -1139,7 +1138,7 @@ def refine_mesh(mesh, site_x, site_y, refine_where, mx, my, mz, ma, rad2):
 
 def createRotatedTurbineForce(mx, my, ma, A, beta, numturbs, alpha, V, mesh,
                               WTGexp, thickness, Ct, radius, checkpts=False):
-    """Use Actuator disc theory to determine the force turbines 
+    """Use Actuator disc theory to determine the force turbines
         amass on the environment
 
     Args:
@@ -1321,7 +1320,7 @@ def rotatedPowerFunction(alpha, A, beta, mx, my, ma, up,
         ma: list of turbine axial induction factors
         up: windspeed and pressure across mesh
         numturbs: number of turbines
-        V: 
+        V:
         mesh: input mesh
         air_density: air density at farm
         Cp: power coefficient (float)
@@ -1402,17 +1401,17 @@ def CFD_wake(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         using WindSE2D CFD wake model
 
     Args:
-        xlocs: list of x-coordinates of wind turbines where each item in the 
+        xlocs: list of x-coordinates of wind turbines where each item in the
                 list is a list of that turbine's x-coordinate at each
                 wind onset angle
-        ylocs: list of y-coordinates of wind turbines where each item in the 
+        ylocs: list of y-coordinates of wind turbines where each item in the
                 list is a list of that turbine's y-coordinate at each
                 wind onset angle
         rr: list of rotor radii for each turbine
         hh: list of hub heights for each turbine
         z0: wind farm surface roughness in meters (float)
         U0: list of onset wind speeds in m/s
-        probwui: list of lists for probability of onset wind conditions
+        probwui: list of probabilities of onset wind conditions
             first index represets onset wind direction index
             second index represents onset wind speed index
         Zref: Wind speed reference height
@@ -1426,7 +1425,7 @@ def CFD_wake(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
     Returns:
         list of turbine power output by [turbine no.][onset angle index]

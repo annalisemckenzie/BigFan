@@ -1,6 +1,6 @@
 Description of Variable Name,Variable Name in Code,User input values,,,,,,,,,
-one cell per turbine starting x-location (m),XLocations,0,0,0,0,0,0,0,0,0,0
-one cell per turbine starting y-location (m),YLocations,0,200,400,600,800,1000,1200,1400,1600,1800
+one cell per turbine starting x-location (m),XLocations,0,200,400,600,800,1000,1200,1400,1600,1800
+one cell per turbine starting y-location (m),YLocations,0,0,0,0,0,0,0,0,0,0
 Do you want a random starting layout (negates x- and y- locations),RandomStart,TRUE,,,,,,,,,
 rotor radius for each turbine (m),rr,40,40,40,40,40,40,40,40,40,40
 hub height for each turbine (m),hh,80,80,80,80,80,80,80,80,80,80
@@ -46,3 +46,5 @@ swarm size for PSO,swarm_size,100,,,,,,,,,
 initial number of turbines optimized for PSO,initial_num,30,,,,,,,,,
 scale factor for constraint violation,constraint_scale,0.5,,,,,,,,,
 mixing length denomenator for CFD,mlDenom,2,,,,,,,,,
+power law exponent,alphah,0.11,,,,,,,,,
+analysis type (EPS/discEPS/GA/PSO/hardcode),analysis_type,EPS,,,,,,,,,

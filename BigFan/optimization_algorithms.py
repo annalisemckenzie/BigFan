@@ -76,7 +76,6 @@ def translate_x(xlocation, ylocation, step_size, index, farm_x,
     """
     transflag = False
     xstart = xlocation[index][0]
-    # print(xstart, step_size)
     # find preliminary new x-location given step size
     xfinish = xstart + step_size
     # check for turbine interference
@@ -207,14 +206,14 @@ def EPS(xlocation, ylocation, init_step, minstep,
             first index represets onset wind direction index
             second index represents onset wind speed index
         rr: list of rotor radii for each turbine
-        hh: list of hub heights for each turbine 
+        hh: list of hub heights for each turbine
         cut_in: turbine cut-in wind speed (float)
         rated: turbine rated wind speed (float)
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
         depth: water depth in meters (float)
         distance_to_shore: distance from farm to shore (float)
@@ -233,8 +232,6 @@ def EPS(xlocation, ylocation, init_step, minstep,
     tot_evals = 0
     num_EPS_repeats = 1  # number of times you completely reset EPS
     for h in range(0, num_EPS_repeats):
-        # print('objective eval: ' + str(objective))
-        # print('h= ' + str(h))
         # develop preliminary objective for comparison purposes
         tot_evals += 1
         nomove, power = Eval_Objective(Compute_Wake, Compute_Cost, xlocation,
@@ -663,9 +660,9 @@ def EPS(xlocation, ylocation, init_step, minstep,
                 # all turbines have stopped moving at this step size
                 # find worst performing turbine and randomly assign elsewhere
                 for b in range(0, num_pops):
-                    print("No moves at step size "
-                          + str(step2)
-                          + " are possible. Popping weakest turbine.")
+                    # print("No moves at step size "
+                    #       + str(step2)
+                    #       + " are possible. Popping weakest turbine.")
                     min_power = 5000000.  # dummy large value for min calc
                     # create a randomly ordered vector of turbines
                     random_vec2 = Rand_Vector(initial_num)
@@ -684,31 +681,32 @@ def EPS(xlocation, ylocation, init_step, minstep,
                         checkx = 0
                         # try random locations until one has no interference
                         while checkx != 1:
-                            xnew = [random.uniform(0, farm_x)]
-                            ynew = [random.uniform(0, farm_y)]
+                            startx = random.uniform(0, farm_x)
+                            starty = random.uniform(0, farm_y)
+                            xnew = []
+                            ynew = []
                             for rads in directions:
-                                xnew.append(np.cos(rads) * xnew[0]
-                                            - np.sin(rads) * ynew[0])
-                                ynew.append(np.sin(rads) * xnew[0]
-                                            + np.cos(rads) * ynew[0])
+                                xnew.append(np.cos(rads) * startx
+                                            - np.sin(rads) * starty)
+                                ynew.append(np.sin(rads) * startx
+                                            + np.cos(rads) * starty)
                             xlocation[min_turb] = xnew
                             ylocation[min_turb] = ynew
-
                             interference = Check_Interference(xlocation,
                                                               ylocation,
-                                                              i, turb_sep)
-                            print(interference)
+                                                              min_turb,
+                                                              turb_sep)
                             if not interference:  # No interference
                                 # place turbine and exit poping loop
                                 checkx = 1
-                                print('Turbine '
-                                      + str(min_turb)
-                                      + ' has moved to a new location.')
+                                # print('Turbine '
+                                #       + str(min_turb)
+                                #       + ' has moved to a new location.')
                             else:
                                 xlocation[min_turb] = initialx
                                 ylocation[min_turb] = initialy
-                                print('Turbine cannot be relocated without '
-                                      + 'interference, trying agian.')
+                                # print('Turbine cannot be relocated without '
+                                #       + 'interference, trying agian.')
                         tot_evals += 1
                         new_eval, power = Eval_Objective(Compute_Wake,
                                                          Compute_Cost,
@@ -733,13 +731,13 @@ def EPS(xlocation, ylocation, init_step, minstep,
                             #       Should you wish to add it, this would
                             #       be an appropriate place to do so
                             # HubHeight_Search(etc...)
-                            print('Move has improved the evaluation.'
-                                  + 'Continuing pattern serach.')
+                            # print('Move has improved the evaluation.'
+                            #       + 'Continuing pattern serach.')
                         else:
                             xlocation[min_turb] = initialx
                             ylocation[min_turb] = initialy
-                            print('Move did not improve evaluation.'
-                                  + 'Trying new moves.')
+                            # print('Move did not improve evaluation.'
+                            #       + 'Trying new moves.')
                         k += 1
                 # halving step size
                 step2 = step2 / 2.0
@@ -781,14 +779,14 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
             first index represets onset wind direction index
             second index represents onset wind speed index
         rr: list of rotor radii for each turbine
-        hh: list of hub heights for each turbine 
+        hh: list of hub heights for each turbine
         cut_in: turbine cut-in wind speed (float)
         rated: turbine rated wind speed (float)
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
         depth: water depth in meters (float)
         distance_to_shore: distance from farm to shore (float)
@@ -1248,7 +1246,7 @@ def translate_chromosome(chromosome, binary_x, options_x,
 def GA(mesh_size, elite, mateable_range, mutation_rate,
        z0, U0, Zref, alphah, ro, yrs, WCOE, population_size,
        generations_to_converge, aif, farm_x, farm_y, turb_sep, Eval_Objective,
-       wind_directions, Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in,
+       Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in,
        rated, cut_out, Cp, availability, nwp, extra, depth,
        distance_to_shore, a, directions):
     """Genetic Algorithm
@@ -1278,14 +1276,14 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
             first index represets onset wind direction index
             second index represents onset wind speed index
         rr: list of rotor radii for each turbine
-        hh: list of hub heights for each turbine 
+        hh: list of hub heights for each turbine
         cut_in: turbine cut-in wind speed (float)
         rated: turbine rated wind speed (float)
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
         depth: water depth in meters (float)
         distance_to_shore: distance from farm to shore (float)
@@ -1455,14 +1453,14 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
             first index represets onset wind direction index
             second index represents onset wind speed index
         rr: list of rotor radii for each turbine
-        hh: list of hub heights for each turbine 
+        hh: list of hub heights for each turbine
         cut_in: turbine cut-in wind speed (float)
         rated: turbine rated wind speed (float)
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
         nwp: whether to use the nested wake provision (True/False)
-        extra: whether to provide turbine windspeeds and total cost 
+        extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
         depth: water depth in meters (float)
         distance_to_shore: distance from farm to shore (float)

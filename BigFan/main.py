@@ -17,6 +17,7 @@ import wake_models as wm
 import optimization_algorithms as oa
 import warnings
 import random
+import matplotlib.pyplot as plt
 
 
 # Take variables from input spreadsheet
@@ -34,7 +35,7 @@ def read_inputs():
     dir_path = os.path.join(dir_path, 'inputs.csv')
     all_inputs = []
     all_variables = []
-    possible_strings = ['on', 'off']
+    possible_strings = ['on', 'off', 'eps', 'disceps', 'ga', 'pso', 'hardcode']
     list_values = ['XLocations', 'YLocations', 'rr', 'hh', 'directions',
                    'U0', 'probwui']
     with open(dir_path) as infile:
@@ -85,6 +86,22 @@ def read_inputs():
                         value = 'off'
             all_variables.append(variable)
             all_inputs.append(value)
+    type_index = all_variables.index('analysis_type')
+    if all_inputs[type_index] == 'ErrorUseDefault':
+        raise ValueError('no analysis type specified')
+    try:
+        num_directions = len(all_inputs[all_variables.index('directions')])
+        num_ws = len(all_inputs[all_variables.index('U0')])
+        probwui = all_inputs[all_variables.index('probwui')]
+        new_prob_format = []
+        for i in range(num_directions):
+            dummy_var = []
+            for j in range(num_ws):
+                dummy_var.append(probwui[i*num_ws + j])
+            new_prob_format.append(dummy_var)
+        all_inputs[all_variables.index('probwui')] = new_prob_format
+    except ValueError:
+        raise ValueError('no probabilities given for wind speeds')
     return all_variables, all_inputs
 
 
@@ -98,10 +115,12 @@ def identify_defaults_needed(variables, inputs):
         indices of variables needing default values
     """
     shore = inputs[variables.index('shore')]
-    need_defaults = []  # collect variables that need default values
     while 'ErrorUseDefault' in inputs:
         index = inputs.index('ErrorUseDefault')
         inputs[index] = get_defaults(variables[index], shore)
+        if variables[index] == 'rr' or variables[index] == 'hh':
+            initial_num = inputs[variables['initial_num']]
+            inputs[index] = [inputs[index] for ii in range(initial_num)]
     return variables, inputs
 
 
@@ -117,7 +136,7 @@ def identify_erroneous_inputs(variables, inputs):
     string_values = ['shore', 'condition']
     list_values = ['XLocations', 'YLocations', 'rr', 'hh', 'directions',
                    'U0', 'probwui']
-    float_values = ['aif', 'farm_x', 'farm_y', 'cut_in', 'rated', 'ro', 'a',
+    float_values = ['aif', 'site_x', 'site_y', 'cut_in', 'rated', 'ro', 'a',
                     'cut_out', 'Cp', 'availability', 'depth', 'yrs',
                     'WCOE', 'distance_to_shore', 'turb_sep', 'z0', 'num_pops',
                     'max_pop_tries', 'init_step', 'minstep', 'mesh_size',
@@ -218,7 +237,7 @@ def get_defaults(variable, shore):
     Returns:
         default value
     """
-    default_variables = ['rr', 'hh', 'aif', 'farm_x', 'farm_y', 'cut_in',
+    default_variables = ['rr', 'hh', 'aif', 'site_x', 'site_y', 'cut_in',
                          'rated', 'cut_out', 'Cp', 'availability', 'depth',
                          'yrs', 'WCOE', 'distance_to_shore', 'turb_sep',
                          'directions', 'U0', 'probwui', 'Zref',
@@ -237,6 +256,8 @@ def get_defaults(variable, shore):
                       0.01, 100, 10, 0.4, 2.]
     if variable in default_variables:
         return default_values[default_variables.index(variable)]
+    elif variable == 'XLocations' or variable == 'YLocations':
+        return 'NoDefault'
     else:
         if shore == 'on':
             if variable == 'z0':
@@ -254,8 +275,355 @@ def get_defaults(variable, shore):
                 return cm.offshore_cost
 
 
+def set_up_EPS(variables, values):
+    xlocations, ylocations = starting_locations(variables, values)
+    output = oa.EPS(xlocations, ylocations,
+                    values[variables.index('init_step')],
+                    values[variables.index('minstep')],
+                    values[variables.index('z0')],
+                    values[variables.index('U0')],
+                    values[variables.index('Zref')],
+                    values[variables.index('alphah')],
+                    values[variables.index('ro')],
+                    values[variables.index('yrs')],
+                    values[variables.index('WCOE')],
+                    int(values[variables.index('num_pops')]),
+                    int(values[variables.index('max_pop_tries')]),
+                    values[variables.index('aif')],
+                    values[variables.index('site_x')],
+                    values[variables.index('site_y')],
+                    values[variables.index('turb_sep')],
+                    values[variables.index('Eval_Objective')],
+                    values[variables.index('Compute_Wake')],
+                    values[variables.index('Compute_Cost')],
+                    values[variables.index('probwui')],
+                    values[variables.index('rr')],
+                    values[variables.index('hh')],
+                    values[variables.index('cut_in')],
+                    values[variables.index('rated')],
+                    values[variables.index('cut_out')],
+                    values[variables.index('Cp')],
+                    values[variables.index('availability')],
+                    values[variables.index('nwp')],
+                    False,
+                    values[variables.index('depth')],
+                    values[variables.index('distance_to_shore')],
+                    values[variables.index('a')],
+                    values[variables.index('directions')])
+    return output
+
+
+def set_up_discEPS(variables, values):
+    xlocations, ylocations = starting_locations(variables, values)
+    output = oa.EPS_disc(xlocations, ylocations,
+                         values[variables.index('init_step')],
+                         values[variables.index('minstep')],
+                         values[variables.index('z0')],
+                         values[variables.index('U0')],
+                         values[variables.index('Zref')],
+                         values[variables.index('alphah')],
+                         values[variables.index('ro')],
+                         values[variables.index('yrs')],
+                         values[variables.index('WCOE')],
+                         int(values[variables.index('num_pops')]),
+                         int(values[variables.index('max_pop_tries')]),
+                         values[variables.index('aif')],
+                         values[variables.index('site_x')],
+                         values[variables.index('site_y')],
+                         values[variables.index('turb_sep')],
+                         values[variables.index('Eval_Objective')],
+                         values[variables.index('Compute_Wake')],
+                         values[variables.index('Compute_Cost')],
+                         values[variables.index('probwui')],
+                         values[variables.index('rr')],
+                         values[variables.index('hh')],
+                         values[variables.index('cut_in')],
+                         values[variables.index('rated')],
+                         values[variables.index('cut_out')],
+                         values[variables.index('Cp')],
+                         values[variables.index('availability')],
+                         values[variables.index('nwp')],
+                         False,
+                         values[variables.index('depth')],
+                         values[variables.index('distance_to_shore')],
+                         values[variables.index('a')],
+                         values[variables.index('directions')],
+                         values[variables.index('mesh_width')])
+    return output
+
+
+def set_up_GA(variables, values):
+    output = oa.GA(values[variables.index('mesh_size')],
+                   values[variables.index('elite')],
+                   values[variables.index('mateable_range')],
+                   values[variables.index('mutation_rate')],
+                   values[variables.index('z0')],
+                   values[variables.index('U0')],
+                   values[variables.index('Zref')],
+                   values[variables.index('alphah')],
+                   values[variables.index('ro')],
+                   values[variables.index('yrs')],
+                   values[variables.index('WCOE')],
+                   values[variables.index('population_size')],
+                   values[variables.index('generations_to_converge')],
+                   values[variables.index('aif')],
+                   values[variables.index('site_x')],
+                   values[variables.index('site_y')],
+                   values[variables.index('turb_sep')],
+                   values[variables.index('Eval_Objective')],
+                   values[variables.index('Compute_Wake')],
+                   values[variables.index('Compute_Cost')],
+                   values[variables.index('probwui')],
+                   values[variables.index('rr')],
+                   values[variables.index('hh')],
+                   values[variables.index('cut_in')],
+                   values[variables.index('rated')],
+                   values[variables.index('cut_out')],
+                   values[variables.index('Cp')],
+                   values[variables.index('availability')],
+                   values[variables.index('nwp')],
+                   False,
+                   values[variables.index('depth')],
+                   values[variables.index('distance_to_shore')],
+                   values[variables.index('a')],
+                   values[variables.index('directions')])
+    return output
+
+
+def set_up_PSO(variables, values):
+    output = oa.PSO(values[variables.index('self_weight')],
+                    values[variables.index('global_weight')],
+                    values[variables.index('swarm_size')],
+                    values[variables.index('initial_num')],
+                    values[variables.index('site_x')],
+                    values[variables.index('site_y')],
+                    values[variables.index('turb_sep')],
+                    values[variables.index('generations_to_converge')],
+                    values[variables.index('Eval_Objective')],
+                    values[variables.index('constraint_scale')],
+                    values[variables.index('z0')],
+                    values[variables.index('U0')],
+                    values[variables.index('Zref')],
+                    values[variables.index('alphah')],
+                    values[variables.index('ro')],
+                    values[variables.index('aif')],
+                    values[variables.index('yrs')],
+                    values[variables.index('WCOE')],
+                    values[variables.index('population_size')],
+                    values[variables.index('generations_to_converge')],
+                    values[variables.index('Compute_Wake')],
+                    values[variables.index('Compute_Cost')],
+                    values[variables.index('probwui')],
+                    values[variables.index('rr')],
+                    values[variables.index('hh')],
+                    values[variables.index('cut_in')],
+                    values[variables.index('rated')],
+                    values[variables.index('cut_out')],
+                    values[variables.index('Cp')],
+                    values[variables.index('availability')],
+                    values[variables.index('nwp')],
+                    False,
+                    values[variables.index('depth')],
+                    values[variables.index('distance_to_shore')],
+                    values[variables.index('a')],
+                    values[variables.index('directions')])
+    return output
+
+
+def set_up_hardcode(variables, values, xvals=0, yvals=0, hh=0,
+                    rr=0, no_optimization=True):
+    if no_optimization:
+        objective = values[variables.index('Eval_Objective')]
+        no_x = values[variables.index('XLocations')] == 'NoDefault'
+        no_y = values[variables.index('YLocations')] == 'NoDefault'
+        length_x = len(values[variables.index('XLocations')])
+        length_y = len(values[variables.index('YLocations')])
+        if no_x or no_y or (length_x != length_y):
+            raise ValueError('No input x- and y- locations specified '
+                             + 'for hard coded analysis')
+        xvals = values[variables.index('XLocations')]
+        yvals = values[variables.index('YLocations')]
+        rr = values[variables.index('rr')]
+        hh = values[variables.index('hh')]
+    output = objective(values[variables.index('Compute_Wake')],
+                       values[variables.index('Compute_Cost')],
+                       xvals, yvals, rr, hh,
+                       values[variables.index('z0')],
+                       values[variables.index('U0')],
+                       values[variables.index('probwui')],
+                       values[variables.index('Zref')],
+                       values[variables.index('alphah')],
+                       values[variables.index('ro')],
+                       values[variables.index('aif')],
+                       values[variables.index('site_y')],
+                       values[variables.index('cut_in')],
+                       values[variables.index('rated')],
+                       values[variables.index('cut_out')],
+                       values[variables.index('Cp')],
+                       values[variables.index('availability')],
+                       values[variables.index('nwp')],
+                       True,
+                       values[variables.index('depth')],
+                       values[variables.index('yrs')],
+                       values[variables.index('WCOE')],
+                       values[variables.index('distance_to_shore')],
+                       values[variables.index('a')])
+    return output
+
+
+def plot_turbines(xlocs, ylocs, hh, rr):
+    redcx = []
+    redcy = []
+    yellowcx = []
+    yellowcy = []
+    greencx = []
+    greency = []
+    bluecx = []
+    bluecy = []
+    redtrx = []
+    redtry = []
+    yellowtrx = []
+    yellowtry = []
+    greentrx = []
+    greentry = []
+    bluetrx = []
+    bluetry = []
+    redrhx = []
+    redrhy = []
+    yellowrhx = []
+    yellowrhy = []
+    greenrhx = []
+    greenrhy = []
+    bluerhx = []
+    bluerhy = []
+    redsqx = []
+    redsqy = []
+    yellowsqx = []
+    yellowsqy = []
+    greensqx = []
+    greensqy = []
+    bluesqx = []
+    bluesqy = []
+    noplotx = []
+    noploty = []
+
+    for i in range(len(xlocs)):
+        if hh[i] <= 60 and rr[i] <= 30:
+            redcx.append(xlocs[i])
+            redcy.append(ylocs[i])
+
+        elif hh[i] <= 60 and rr[i] <= 40:
+            yellowcx.append(xlocs[i])
+            yellowcy.append(ylocs[i])
+
+        elif hh[i] <= 60 and rr[i] <= 60:
+            greencx.append(xlocs[i])
+            greency.append(ylocs[i])
+
+        elif hh[i] <= 60 and rr[i] > 60:
+            bluecx.append(xlocs[i])
+            bluecy.append(ylocs[i])
+
+        elif hh[i] <= 80 and rr[i] <= 30:
+            redtrx.append(xlocs[i])
+            redtry.append(ylocs[i])
+
+        elif hh[i] <= 80 and rr[i] <= 40:
+            yellowtrx.append(xlocs[i])
+            yellowtry.append(ylocs[i])
+
+        elif hh[i] <= 80 and rr[i] <= 60:
+            greentrx.append(xlocs[i])
+            greentry.append(ylocs[i])
+
+        elif hh[i] <= 80 and rr[i] > 60:
+            bluetrx.append(xlocs[i])
+            bluetry.append(ylocs[i])
+
+        elif hh[i] <= 120 and rr[i] <= 30:
+            redrhx.append(xlocs[i])
+            redrhy.append(ylocs[i])
+
+        elif hh[i] <= 120 and rr[i] <= 40:
+            yellowrhx.append(xlocs[i])
+            yellowrhy.append(ylocs[i])
+
+        elif hh[i] <= 120 and rr[i] <= 60:
+            greenrhx.append(xlocs[i])
+            greenrhy.append(ylocs[i])
+
+        elif hh[i] <= 120 and rr[i] > 60:
+            bluerhx.append(xlocs[i])
+            bluerhy.append(ylocs[i])
+
+        elif hh[i] > 120 and rr[i] <= 30:
+            redsqx.append(xlocs[i])
+            redsqy.append(ylocs[i])
+
+        elif hh[i] > 120 and rr[i] <= 40:
+            yellowsqx.append(xlocs[i])
+            yellowsqy.append(ylocs[i])
+
+        elif hh[i] > 120 and rr[i] <= 60:
+            greensqx.append(xlocs[i])
+            greensqy.append(ylocs[i])
+
+        elif hh[i] > 120 and rr[i] > 60:
+            bluesqx.append(xlocs[i])
+            bluesqy.append(ylocs[i])
+
+        else:
+            noplotx.append(xlocs[i])
+            noploty.append(ylocs[i])
+
+    fig = plt.figure()
+    ax1 = fig.add_subplot(111)
+    ax1.scatter(redcx, redcy, s=10, c='r', marker="o")
+    ax1.scatter(yellowcx, yellowcy, s=10, c='y', marker="o")
+    ax1.scatter(greencx, greency, s=10, c='g', marker="o")
+    ax1.scatter(bluecy, bluecy, s=10, c='b', marker="o")
+    ax1.scatter(redtrx, redtry, s=10, c='r', marker="^")
+    ax1.scatter(yellowtrx, yellowtry, s=10, c='y', marker="^")
+    ax1.scatter(greentrx, greentry, s=10, c='g', marker="^")
+    ax1.scatter(bluetrx, bluetry, s=10, c='b', marker="^")
+    ax1.scatter(redrhx, redrhy, s=10, c='r', marker="d")
+    ax1.scatter(yellowrhx, yellowrhy, s=10, c='y', marker="d")
+    ax1.scatter(greenrhx, greenrhy, s=10, c='g', marker="d")
+    ax1.scatter(bluerhy, bluerhy, s=10, c='b', marker="d")
+    ax1.scatter(redsqx, redsqy, s=10, c='r', marker="s")
+    ax1.scatter(yellowsqx, yellowsqy, s=10, c='y', marker="s")
+    ax1.scatter(greensqx, greensqy, s=10, c='g', marker="s")
+    ax1.scatter(bluesqx, bluesqy, s=10, c='b', marker="s")
+
+    for i in range(len(xlocs)):
+        ax1.annotate(i, (xlocs[i], ylocs[i]))
+    plt.ylabel('Position (m)')
+    plt.xlabel('Position (m)')
+    plt.title(str('Optimization of ' + str(len(xlocs)) + ' Turbines'))
+    plt.show()
+    plt.savefig('output_layout.png')
+
+
 if __name__ == "__main__":
     variables, values = read_inputs()
     identify_erroneous_inputs(variables, values)
     variables, values = identify_defaults_needed(variables, values)
-    xlocations, ylocations = starting_locations(variables, values)
+    analysis = values[variables.index('analysis_type')]
+    if analysis == 'eps':
+        output = set_up_EPS(variables, values)
+    elif analysis == 'disceps':
+        output = set_up_discEPS(variables, values)
+    elif analysis == 'ga':
+        output = set_up_GA(variables, values)
+    elif analysis == 'pso':
+        output = set_up_PSO(variables, values)
+    elif analysis == 'hardcode':
+        output = [values[variables.index('XLocations')],
+                  values[variables.index('YLocations')]]
+    # regardless of analysis chosen, do final analysis for all info
+    output = set_up_hardcode(variables, values, output[0], output[1],
+                             values[variables.index('hh')],
+                             values[variables.index('rr')], True)
+    plot_turbines(output[0], output[1],
+                  values[variables.index('hh')],
+                  values[variables.index('rr')])
