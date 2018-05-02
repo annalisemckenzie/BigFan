@@ -6,95 +6,256 @@ Created on Tue Apr 24 11:18:56 2018
 
 ME 599 Project
 Spring 2018
-Main
+Main File - accepts input values and sets up analysis
 """
 
-import xlrd
+import csv
 import os
+import objectives as obj
+import cost_models as cm
+import wake_models as wm
+import optimization_algorithms as oa
+import warnings
+import random
 
-# point to location of inputs
-dir_path = os.path.dirname(os.path.realpath(__file__))
-dir_path = os.path.join(dir_path, 'inputs.xlsxs')
-wb = xlrd.open_workbook(dir_path)
-sheet = wb.sheet_by_index(0)
 
 # Take variables from input spreadsheet
-YLocations = [[(i % 10) * 200.] for i in range(10)]
-XLocations = [[int(i / 10) * 1000.] for i in range(10)]
-rr = [77. / 2. for i in range(10)]
-hh = [80. for i in range(10)]
-aif = 0.314
-farm_x = 2000.  # length of farm in crosswind dierection
-farm_y = 2000.  # length of farm in downwind direction
-cut_in = 3.5  # m/s - default GE 1.5 sle turbine
-rated = 12  # m/s - default GE 1.5 sle turbine
-cut_out = 25  # m/s - default GE 1.5 sle turbine
-Cp = 0.5
-availability = 0.95  # common assumption for turbine availability
-depth = 200.  # ocean depth (m)
-yrs = 20.  # farm life (years)
-WCOE = 0.1  # electrical price per kilowatt-hour
-distance_to_shore = 32.  # distance to shore (length of export cable) - km
-turb_sep = 200.  # minimum turbine separation distance (m)
-directions = [0.]  # onset angle in degrees
+def read_inputs():
+    """Import user settings for analysis
 
-# Default environmental variables
-shore = 'off'  # default to offshore
-if shore == 'off':
-    z0 = 0.0005  # surface roughness (m)
-elif shore == 'on':
-    z0 = 0.05
-U0 = [10.]  # constant speed conditions
-probwui = [[1.]]  # unidirectional, constant speed conditions
-Zref = hh[0]  # reference height is at hub height
-condition = 'NEUTRAL'
-if condition == "NEUTRAL":
-    APow = 0.08835  # Neutral Conditions: WDC(h) = APow*h^BPow
-    BPow = -0.1521
-    if shore == 'off':
-        alphah = 0.11  # Power Law Exponent (averaged over seasons)
-    elif shore == 'on':
-        alphah = 0.15567  # Power Law Exponent (averaged over seasons)
+    Args:
 
-elif condition == "STABLE":
-    APow = 0.07535
-    BPow = -0.1496
-    alphah = 0.14
+    Returns:
+        input variables
+        input values
+    """
+    # point to location of inputs
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = os.path.join(dir_path, 'inputs.csv')
+    all_inputs = []
+    all_variables = []
+    possible_strings = ['on', 'off']
+    list_values = ['XLocations', 'YLocations', 'rr', 'hh', 'directions',
+                   'U0', 'probwui']
+    with open(dir_path) as infile:
+        info = csv.reader(infile, delimiter=',', quotechar='|')
+        next(infile)  # skip first line
+        for row in info:
+            variable = row[1]
+            while '' in row:
+                row.remove('')
+            if variable in list_values and len(row) > 2:
+                if variable in ['XLocations', 'YLocations']:
+                    value = [[float(i)] for i in row[2:]]
+                else:
+                    value = [float(i) for i in row[2:]]
+            else:
+                try:
+                    value = float(row[2])
+                except ValueError:
+                    # if the value is a string, deal with it appropriately
+                    if row[2].lower() == 'false':
+                        value = False
+                    elif row[2].lower() == 'true':
+                        value = True
+                    elif row[2].lower() in possible_strings:
+                        value = row[2].lower()
+                    elif row[2].lower() == 'cost':
+                        value = obj.cost
+                    elif row[2].lower() == 'profit':
+                        value = obj.profit
+                    elif row[2].lower() == 'cop':
+                        value = obj.COP
+                    elif row[2].lower() == 'lcoe':
+                        value = obj.LCOE
+                    elif row[2].lower() == 'aep':
+                        value = obj.AEP
+                    elif row[2].lower() == 'park_2d':
+                        value = wm.PARK_2D
+                    elif row[2].lower() == 'park_3d':
+                        value = wm.PARK_3D
+                    elif row[2].lower() == 'offshore_cost':
+                        value = cm.offshore_cost
+                    elif row[2].lower() == 'onshore_cost':
+                        value = cm.onshore_cost
+                except IndexError:
+                    if row[1] != 'shore':
+                        value = 'ErrorUseDefault'
+                    else:
+                        value = 'off'
+            all_variables.append(variable)
+            all_inputs.append(value)
+    return all_variables, all_inputs
 
-elif condition == "UNSTABLE":
-    APow = 0.09759
-    BPow = -0.1352
-    alphah = 0.08
-ro = 1.225  # air density (kg/m^3)
-nwp = False
-extra = False
 
-# Optimization Defaults
-optimize = False
-a = 17.19  # annuity factor for 1.5% interest rate
-# (US Fed Reserve rate Jan 2018)
-Eval_Objective = LCOE
-Compute_Wake = PARK_3D
-Compute_Cost = offshore_cost
-# EPS
-num_pops = 5  # number of turbines popped
-max_pop_tries = 1000  # number of popping attempts per turbine
-init_step = 400.  # initial step-size (m)
-minstep = 5.  # minimum step size (m)
-# GA
-mesh_size = 5  # mesh size (m)
-elite = 0.1  # percent of best scoring adults kept from last generation
-mateable_range = 0.8  # percent of best scoring adults allowed to mate
-mutation_rate = 0.05  # percent of chromosomes subject to random mutation
-population_size = 100  # number of layouts in each generation/swarm
-# GA/PSO
-generations_to_converge = 100  # number of generations with same best layout
-# before GA/PSO considered converged
-# PSO
-self_weight = 0.001
-global_weight = 0.001
-swarm_size = 100  # same as population size but for pso
-initial_num = 30.
-constraint_scale = 0.5  # I haven't found the best value for this
-# CFD
-mlDenom = 2.  # mixing length denominator
+def identify_defaults_needed(variables, inputs):
+    """Identify which user values need defaults
+
+    Args:
+        variables: list of input variable names
+        inputs: list of input variable values in same order as names
+    Returns:
+        indices of variables needing default values
+    """
+    shore = inputs[variables.index('shore')]
+    need_defaults = []  # collect variables that need default values
+    while 'ErrorUseDefault' in inputs:
+        index = inputs.index('ErrorUseDefault')
+        inputs[index] = get_defaults(variables[index], shore)
+    return variables, inputs
+
+
+def identify_erroneous_inputs(variables, inputs):
+    """Identify user values that don't make sense
+
+    Args:
+        variables: list of input variable names
+        inputs: list of input variable values in same order as names
+    Returns:
+        none
+    """
+    string_values = ['shore', 'condition']
+    list_values = ['XLocations', 'YLocations', 'rr', 'hh', 'directions',
+                   'U0', 'probwui']
+    float_values = ['aif', 'farm_x', 'farm_y', 'cut_in', 'rated', 'ro', 'a',
+                    'cut_out', 'Cp', 'availability', 'depth', 'yrs',
+                    'WCOE', 'distance_to_shore', 'turb_sep', 'z0', 'num_pops',
+                    'max_pop_tries', 'init_step', 'minstep', 'mesh_size',
+                    'elite', 'mateable_range', 'mutation_rate',
+                    'population_size', 'genreations_to_converge',
+                    'self_weight', 'gloabla_weight', 'swarm_size',
+                    'initial_num', 'constraint_scale', 'mlDenom']
+    bool_values = ['RandomStart', 'nwp', 'optimize']
+    function_values = ['Eval_Objective', 'Compute_Wake', 'Compute_Cost']
+    for var, inp in zip(variables, inputs):
+        check_default = (inp != 'ErrorUseDefault')
+        if var in string_values and type(inp) != str and check_default:
+            raise ValueError('type(' + str(inp) + ') should be a string'
+                             + ' or empty value')
+        elif var in list_values and type(inp) != list and check_default:
+            raise ValueError('type(' + str(inp) + ') should be a list'
+                             + ' or empty value')
+        elif var in float_values and type(inp) != float and check_default:
+            raise ValueError('type(' + str(inp) + ') should be a float'
+                             + ' or empty value')
+        elif var in bool_values and type(inp) != bool and check_default:
+            raise ValueError('type(' + str(inp) + ') should be a boolean'
+                             + ' or empty value')
+        elif var in function_values and not callable(inp) and check_default:
+            raise ValueError('type(' + str(inp) + ') should be a function'
+                             + ' or empty value')
+
+
+def starting_locations(variables, inputs):
+    shore = inputs[variables.index('shore')]
+    initial_num = inputs[variables.index('initial_num')]
+    xloc = inputs[variables.index('XLocations')]
+    yloc = inputs[variables.index('YLocations')]
+    RandStart = inputs[variables.index('RandomStart')]
+    site_x = inputs[variables.index('site_x')]
+    site_y = inputs[variables.index('site_y')]
+    turb_sep = inputs[variables.index('turb_sep')]
+    directions = inputs[variables.index('directions')]
+    if site_x == 'ErrorUseDefault':
+        site_x = get_defaults('site_x')
+    if site_y == 'ErrorUseDefault':
+        site_y = get_defaults('site_y')
+    if turb_sep == 'ErrorUseDefault':
+        turb_sep = get_defaults('turb_sep')
+    if directions == 'ErrorUseDefault':
+        directions = get_defaults('directions')
+    if type(RandStart) == bool:
+        if RandStart:
+            if initial_num != 'ErrorUseDefault':
+                initial_num = get_defaults('initial_num', shore)
+                return random_layout(int(initial_num), site_x, site_y,
+                                     turb_sep, directions)
+            else:
+                warnings.warn('No initial number of turbines specified, '
+                              + 'assuming default value and random '
+                              + 'initial layout')
+                return random_layout(int(initial_num), site_x, site_y,
+                                     turb_sep, directions)
+        elif xloc == 'ErrorUseDefault' or yloc == 'ErrorUseDefault':
+            raise ValueError('You must specify starting turbine locations'
+                             + ' if you set the RandomStart variable to'
+                             + ' False')
+        else:
+            return xloc, yloc
+    if xloc == 'ErrorUseDefault' or yloc == 'ErrorUseDefault':
+        warnings.warn('Insufficient starting information, '
+                      + ' assuming random start with default number '
+                      + 'of turbines')
+        return random_layout(int(initial_num), site_x, site_y, turb_sep,
+                             directions)
+
+
+def random_layout(initial_num, site_x, site_y, turb_sep, directions):
+    xloc = [[0.] for i in range(initial_num)]
+    yloc = [[0.] for i in range(initial_num)]
+    for n in range(0, initial_num):
+        reset = 0
+        checkx = 0
+        while checkx == 0 and reset < 50000:
+            xloc[n] = [random.uniform(0, site_x)]
+            yloc[n] = [random.uniform(0, site_y)]
+            interference = oa.Check_Interference(xloc, yloc, n, turb_sep)
+            if not interference:
+                checkx = 1
+                # If there is no interference and the turbine can be placed
+            else:
+                reset += 1
+        if reset == 50000:
+            raise ValueError('To many turbines for the space')
+    return xloc, yloc
+
+
+def get_defaults(variable, shore):
+    """Get default values
+
+    Args:
+        variable: single input variable name for default selection
+    Returns:
+        default value
+    """
+    default_variables = ['rr', 'hh', 'aif', 'farm_x', 'farm_y', 'cut_in',
+                         'rated', 'cut_out', 'Cp', 'availability', 'depth',
+                         'yrs', 'WCOE', 'distance_to_shore', 'turb_sep',
+                         'directions', 'U0', 'probwui', 'Zref',
+                         'ro', 'nwp', 'a', 'optimize',
+                         'Eval_Objective', 'Compute_Wake',
+                         'num_pops', 'max_pop_tries', 'init_step', 'minstep',
+                         'mesh_size', 'elite', 'mateable_range',
+                         'mutation_rate', 'population_size',
+                         'genreations_to_converge', 'self_weight',
+                         'gloabla_weight', 'swarm_size', 'initial_num',
+                         'constraint_scale', 'mlDenom']
+    default_values = [40., 80., 0.314, 2000., 2000., 3., 12., 25., 0.5, 0.95,
+                      200., 20., 0.1, 32., 200., [0.], [10.], [[1.]],
+                      80., 1.225, False, 27., False, obj.LCOE, wm.PARK_3D, 5,
+                      1000, 400., 3., 5., 0.2, 0.8, 0.05, 100., 100., 0.01,
+                      0.01, 100, 10, 0.4, 2.]
+    if variable in default_variables:
+        return default_values[default_variables.index(variable)]
+    else:
+        if shore == 'on':
+            if variable == 'z0':
+                return 0.05
+            elif variable == 'alphah':
+                return 0.15567
+            elif variable == 'Compute_Cost':
+                return cm.onshore_cost
+        elif shore == 'off':
+            if variable == 'z0':
+                return 0.0005
+            elif variable == 'alphah':
+                return 0.11
+            elif variable == 'Compute_Cost':
+                return cm.offshore_cost
+
+
+if __name__ == "__main__":
+    variables, values = read_inputs()
+    identify_erroneous_inputs(variables, values)
+    variables, values = identify_defaults_needed(variables, values)
+    xlocations, ylocations = starting_locations(variables, values)
