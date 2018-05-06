@@ -18,6 +18,7 @@ import optimization_algorithms as oa
 import warnings
 import random
 import matplotlib.pyplot as plt
+from time import time
 
 
 # Take variables from input spreadsheet
@@ -166,7 +167,6 @@ def identify_erroneous_inputs(variables, inputs):
 
 
 def starting_locations(variables, inputs):
-    shore = inputs[variables.index('shore')]
     initial_num = inputs[variables.index('initial_num')]
     xloc = inputs[variables.index('XLocations')]
     yloc = inputs[variables.index('YLocations')]
@@ -183,18 +183,20 @@ def starting_locations(variables, inputs):
         turb_sep = get_defaults('turb_sep')
     if directions == 'ErrorUseDefault':
         directions = get_defaults('directions')
+    disc = (inputs[variables.index('analysis_type')] == 'disceps',
+            inputs[variables.index('mesh_size')])
     if type(RandStart) == bool:
         if RandStart:
             if initial_num != 'ErrorUseDefault':
-                initial_num = get_defaults('initial_num', shore)
+                initial_num = inputs[variables.index('initial_num')]
                 return random_layout(int(initial_num), site_x, site_y,
-                                     turb_sep, directions)
+                                     turb_sep, directions, disc)
             else:
                 warnings.warn('No initial number of turbines specified, '
                               + 'assuming default value and random '
                               + 'initial layout')
                 return random_layout(int(initial_num), site_x, site_y,
-                                     turb_sep, directions)
+                                     turb_sep, directions, disc)
         elif xloc == 'ErrorUseDefault' or yloc == 'ErrorUseDefault':
             raise ValueError('You must specify starting turbine locations'
                              + ' if you set the RandomStart variable to'
@@ -206,18 +208,30 @@ def starting_locations(variables, inputs):
                       + ' assuming random start with default number '
                       + 'of turbines')
         return random_layout(int(initial_num), site_x, site_y, turb_sep,
-                             directions)
+                             directions, disc)
 
 
-def random_layout(initial_num, site_x, site_y, turb_sep, directions):
+def random_layout(initial_num, site_x, site_y, turb_sep,
+                  directions, disc):
     xloc = [[0.] for i in range(initial_num)]
     yloc = [[0.] for i in range(initial_num)]
+    if disc[0]:
+        if site_x % disc[1] == 0 and site_y % disc[1] == 0:
+            x_opt = int(site_x / disc[1] + 1)
+            y_opt = int(site_y / disc[1] + 1)
+        else:
+            x_opt = int(site_x / disc[1])
+            y_opt = int(site_y / disc[1])
     for n in range(0, initial_num):
         reset = 0
         checkx = 0
         while checkx == 0 and reset < 50000:
-            xloc[n] = [random.uniform(0, site_x)]
-            yloc[n] = [random.uniform(0, site_y)]
+            if disc[0]:
+                xloc[n] = [random.randint(0, x_opt) * disc[1]]
+                yloc[n] = [random.randint(0, y_opt) * disc[1]]
+            else:
+                xloc[n] = [random.uniform(0, site_x)]
+                yloc[n] = [random.uniform(0, site_y)]
             interference = oa.Check_Interference(xloc, yloc, n, turb_sep)
             if not interference:
                 checkx = 1
@@ -276,7 +290,16 @@ def get_defaults(variable, shore):
 
 
 def set_up_EPS(variables, values):
+    """Set-up and run EPS
+
+    Args:
+        variable: ordered names of input values
+        values: input values set by user
+    Returns:
+        optimized (xlocation, ylocation, power, nomove, tot_evals)
+    """
     xlocations, ylocations = starting_locations(variables, values)
+    start_time = time()
     output = oa.EPS(xlocations, ylocations,
                     values[variables.index('init_step')],
                     values[variables.index('minstep')],
@@ -310,11 +333,22 @@ def set_up_EPS(variables, values):
                     values[variables.index('distance_to_shore')],
                     values[variables.index('a')],
                     values[variables.index('directions')])
+    total_time = ((time() - start_time) / 60.)
+    output = [i for i in output] + [total_time]
     return output
 
 
 def set_up_discEPS(variables, values):
+    """Set-up and run discretized EPS
+
+    Args:
+        variable: ordered names of input values
+        values: input values set by user
+    Returns:
+        optimized (xlocation, ylocation, power, nomove, tot_evals)
+    """
     xlocations, ylocations = starting_locations(variables, values)
+    start_time = time()
     output = oa.EPS_disc(xlocations, ylocations,
                          values[variables.index('init_step')],
                          values[variables.index('minstep')],
@@ -348,11 +382,22 @@ def set_up_discEPS(variables, values):
                          values[variables.index('distance_to_shore')],
                          values[variables.index('a')],
                          values[variables.index('directions')],
-                         values[variables.index('mesh_width')])
+                         values[variables.index('mesh_size')])
+    total_time = ((time() - start_time) / 60.)
+    output = [i for i in output] + [total_time]
     return output
 
 
 def set_up_GA(variables, values):
+    """Set-up and run GA
+
+    Args:
+        variable: ordered names of input values
+        values: input values set by user
+    Returns:
+        optimized (xlocation, ylocation, power, nomove, tot_evals)
+    """
+    start_time = ()
     output = oa.GA(values[variables.index('mesh_size')],
                    values[variables.index('elite')],
                    values[variables.index('mateable_range')],
@@ -387,10 +432,21 @@ def set_up_GA(variables, values):
                    values[variables.index('distance_to_shore')],
                    values[variables.index('a')],
                    values[variables.index('directions')])
+    total_time = ((time() - start_time) / 60.)
+    output = [i for i in output] + [total_time]
     return output
 
 
 def set_up_PSO(variables, values):
+    """Set-up and run PSO
+
+    Args:
+        variable: ordered names of input values
+        values: input values set by user
+    Returns:
+        optimized (xlocation, ylocation, power, nomove, tot_evals)
+    """
+    start_time = time()
     output = oa.PSO(values[variables.index('self_weight')],
                     values[variables.index('global_weight')],
                     values[variables.index('swarm_size')],
@@ -427,11 +483,22 @@ def set_up_PSO(variables, values):
                     values[variables.index('distance_to_shore')],
                     values[variables.index('a')],
                     values[variables.index('directions')])
+    total_time = ((time() - start_time) / 60.)
+    output = [i for i in output] + [total_time]
     return output
 
 
 def set_up_hardcode(variables, values, xvals=0, yvals=0, hh=0,
                     rr=0, no_optimization=True):
+    """Set-up and run hardcode analysis, or final analysis for windspeeds
+
+    Args:
+        variable: ordered names of input values
+        values: input values set by user
+    Returns:
+        objective requiested, power generated by each turbine,
+        windspeeds at each turbine, cumulative layout cost
+    """
     if no_optimization:
         objective = values[variables.index('Eval_Objective')]
         no_x = values[variables.index('XLocations')] == 'NoDefault'
@@ -468,10 +535,24 @@ def set_up_hardcode(variables, values, xvals=0, yvals=0, hh=0,
                        values[variables.index('WCOE')],
                        values[variables.index('distance_to_shore')],
                        values[variables.index('a')])
+    output = [i for i in output]
     return output
 
 
 def plot_turbines(xlocs, ylocs, hh, rr):
+    """Plot turbine layout
+
+    Args:
+        xlocs: turbine x-locaations (list)
+        ylocs: turbine y-locaations (list)
+        hh: turbine hub heights (list)
+        rr: turbine rotor radii (list)
+    Returns:
+        objective requiested
+        power generated by each turbine
+        windspeeds at each turbine
+        cumulative layout cost
+    """
     redcx = []
     redcy = []
     yellowcx = []
@@ -509,72 +590,72 @@ def plot_turbines(xlocs, ylocs, hh, rr):
 
     for i in range(len(xlocs)):
         if hh[i] <= 60 and rr[i] <= 30:
-            redcx.append(xlocs[i])
-            redcy.append(ylocs[i])
+            redcx.append(xlocs[i][0])
+            redcy.append(ylocs[i][0])
 
         elif hh[i] <= 60 and rr[i] <= 40:
-            yellowcx.append(xlocs[i])
-            yellowcy.append(ylocs[i])
+            yellowcx.append(xlocs[i][0])
+            yellowcy.append(ylocs[i][0])
 
         elif hh[i] <= 60 and rr[i] <= 60:
-            greencx.append(xlocs[i])
-            greency.append(ylocs[i])
+            greencx.append(xlocs[i][0])
+            greency.append(ylocs[i][0])
 
         elif hh[i] <= 60 and rr[i] > 60:
-            bluecx.append(xlocs[i])
-            bluecy.append(ylocs[i])
+            bluecx.append(xlocs[i][0])
+            bluecy.append(ylocs[i][0])
 
         elif hh[i] <= 80 and rr[i] <= 30:
-            redtrx.append(xlocs[i])
-            redtry.append(ylocs[i])
+            redtrx.append(xlocs[i][0])
+            redtry.append(ylocs[i][0])
 
         elif hh[i] <= 80 and rr[i] <= 40:
-            yellowtrx.append(xlocs[i])
-            yellowtry.append(ylocs[i])
+            yellowtrx.append(xlocs[i][0])
+            yellowtry.append(ylocs[i][0])
 
         elif hh[i] <= 80 and rr[i] <= 60:
-            greentrx.append(xlocs[i])
-            greentry.append(ylocs[i])
+            greentrx.append(xlocs[i][0])
+            greentry.append(ylocs[i][0])
 
         elif hh[i] <= 80 and rr[i] > 60:
-            bluetrx.append(xlocs[i])
-            bluetry.append(ylocs[i])
+            bluetrx.append(xlocs[i][0])
+            bluetry.append(ylocs[i][0])
 
         elif hh[i] <= 120 and rr[i] <= 30:
-            redrhx.append(xlocs[i])
-            redrhy.append(ylocs[i])
+            redrhx.append(xlocs[i][0])
+            redrhy.append(ylocs[i][0])
 
         elif hh[i] <= 120 and rr[i] <= 40:
-            yellowrhx.append(xlocs[i])
-            yellowrhy.append(ylocs[i])
+            yellowrhx.append(xlocs[i][0])
+            yellowrhy.append(ylocs[i][0])
 
         elif hh[i] <= 120 and rr[i] <= 60:
-            greenrhx.append(xlocs[i])
-            greenrhy.append(ylocs[i])
+            greenrhx.append(xlocs[i][0])
+            greenrhy.append(ylocs[i][0])
 
         elif hh[i] <= 120 and rr[i] > 60:
-            bluerhx.append(xlocs[i])
-            bluerhy.append(ylocs[i])
+            bluerhx.append(xlocs[i][0])
+            bluerhy.append(ylocs[i][0])
 
         elif hh[i] > 120 and rr[i] <= 30:
-            redsqx.append(xlocs[i])
-            redsqy.append(ylocs[i])
+            redsqx.append(xlocs[i][0])
+            redsqy.append(ylocs[i][0])
 
         elif hh[i] > 120 and rr[i] <= 40:
-            yellowsqx.append(xlocs[i])
-            yellowsqy.append(ylocs[i])
+            yellowsqx.append(xlocs[i][0])
+            yellowsqy.append(ylocs[i][0])
 
         elif hh[i] > 120 and rr[i] <= 60:
-            greensqx.append(xlocs[i])
-            greensqy.append(ylocs[i])
+            greensqx.append(xlocs[i][0])
+            greensqy.append(ylocs[i][0])
 
         elif hh[i] > 120 and rr[i] > 60:
-            bluesqx.append(xlocs[i])
-            bluesqy.append(ylocs[i])
+            bluesqx.append(xlocs[i][0])
+            bluesqy.append(ylocs[i][0])
 
         else:
-            noplotx.append(xlocs[i])
-            noploty.append(ylocs[i])
+            noplotx.append(xlocs[i][0])
+            noploty.append(ylocs[i][0])
 
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
@@ -596,12 +677,68 @@ def plot_turbines(xlocs, ylocs, hh, rr):
     ax1.scatter(bluesqx, bluesqy, s=10, c='b', marker="s")
 
     for i in range(len(xlocs)):
-        ax1.annotate(i, (xlocs[i], ylocs[i]))
+        ax1.annotate(i, (xlocs[i][0], ylocs[i][0]))
     plt.ylabel('Position (m)')
     plt.xlabel('Position (m)')
     plt.title(str('Optimization of ' + str(len(xlocs)) + ' Turbines'))
     plt.show()
     plt.savefig('output_layout.png')
+
+
+def create_output_file(variables, values, objective_output,
+                       optimization_output):
+    with open('BigFan_Output.txt', 'w+') as outputfile:
+        outputfile.write('***** Simulation Inputs *****')
+        # sort inputs alphabetically
+        for i in range(len(values)):
+            if callable(values[i]):
+                if values[i] == obj.profit:
+                    values[i] = 'profit'
+                elif values[i] == obj.AEP:
+                    values[i] = 'AEP'
+                elif values[i] == obj.COP:
+                    values[i] = 'COP'
+                elif values[i] == obj.cost:
+                    values[i] = 'cost'
+                elif values[i] == obj.LCOE:
+                    values[i] = 'LCOE'
+                elif values[i] == oa.EPS:
+                    values[i] = 'EPS'
+                elif values[i] == oa.EPS_disc:
+                    values[i] = 'discretized EPS'
+                elif values[i] == oa.GA:
+                    values[i] = 'GA'
+                elif values[i] == oa.PSO:
+                    values[i] = 'PSO'
+                elif values[i] == cm.offshore_cost:
+                    values[i] = 'onshore cost model'
+                elif values[i] == cm.onshore_cost:
+                    values[i] = 'offshore cost model'
+                elif values[i] == wm.PARK_2D:
+                    values[i] = '2D PARK'
+                elif values[i] == wm.PARK_3D:
+                    values[i] = '3D PARK'
+        all_out = [(i, j) for i, j in zip(variables, values)]
+        all_out.sort(key=lambda x: x[0])
+        for i in all_out:
+            outputfile.write(i[0] + ': ' + str(i[1]) + '\n')
+        outputfile.write('\n\n\n')
+        outputfile.write('***** Simulation Outputs *****\n')
+        outputfile.write('final objective: '
+                         + str(objective_output[0]) + '\n')
+        outputfile.write('final turbine power outputs: '
+                         + str(objective_output[1]) + '\n')
+        outputfile.write('final turbine windspeeds: '
+                         + str(objective_output[2]) + '\n')
+        outputfile.write('total cost: ' + str(objective_output[3]) + '\n')
+        outputfile.write('final turbine x-locations: '
+                         + str(optimization_output[0]) + '\n')
+        outputfile.write('final turbine y-locations: '
+                         + str(optimization_output[1]) + '\n')
+        outputfile.write('number of evaluations made: '
+                         + str(optimization_output[4]) + '\n')
+        outputfile.write('analysis time: ' + str(optimization_output[5])
+                         + ' minutes')
 
 
 if __name__ == "__main__":
@@ -621,9 +758,13 @@ if __name__ == "__main__":
         output = [values[variables.index('XLocations')],
                   values[variables.index('YLocations')]]
     # regardless of analysis chosen, do final analysis for all info
-    output = set_up_hardcode(variables, values, output[0], output[1],
+    start_time = time()
+    outobj = set_up_hardcode(variables, values, output[0], output[1],
                              values[variables.index('hh')],
                              values[variables.index('rr')], True)
+    if analysis == 'hardcode':
+        output = output + ['blank', 'blank', 1, (time() - start_time) / 60.]
     plot_turbines(output[0], output[1],
                   values[variables.index('hh')],
                   values[variables.index('rr')])
+    create_output_file(variables, values, outobj, output)
