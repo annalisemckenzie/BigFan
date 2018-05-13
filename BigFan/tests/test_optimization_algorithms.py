@@ -9,8 +9,12 @@ ME 599 Project - Spring 2018
 """
 
 from .. import optimization_algorithms as op_al
+from .. import objectives as obj
+from .. import wake_models as wm
+from .. import cost_models as cm
 import numpy as np
 import pytest
+
 
 # test constraint checker
 def test_check_interference():
@@ -23,6 +27,7 @@ def test_check_interference():
     turb_sep = 300.
     exp_val = op_al.Check_Interference(xlocation, ylocation, index, turb_sep)
     assert exp_val == True
+
 
 # test x translation
 def test_translate_x():
@@ -62,6 +67,7 @@ def test_translate_x():
                             turb_sep, directions)
     assert exp == (True, xlocation, ylocation)
 
+
 def test_translate_y():
     xlocation = [[0.0, 0.0],
                  [200.0, 73.205080756887767],
@@ -99,6 +105,7 @@ def test_translate_y():
                             turb_sep, directions)
     assert exp == (True, xlocation, ylocation)
 
+
 def test_Rand_Vector():
     initial_num = 12
     exp = op_al.Rand_Vector(initial_num)
@@ -110,6 +117,7 @@ def test_Rand_Vector():
     initial_num = 0
     with pytest.raises(ValueError):
         exp = op_al.Rand_Vector(initial_num)
+
 
 def test_translate_chromosome():
     chromosome = [1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1]
@@ -129,5 +137,100 @@ def test_translate_chromosome():
         exp = op_al.translate_chromosome(chromosome, binary_x, options_x,
                                          binary_y, options_y, mesh_size,
                                          directions)
+
+
+def test_disc_EPS():
+    xlocation = [0., 200., 400., 0., 200., 400., 0., 200.]
+    ylocation = [0., 0., 0., 200., 200., 200., 400., 400.]
+    init_step = 8.
+    minstep = 1.
+    z0 = 0.005
+    U0 = [7., 10.]
+    Zref = 80.
+    alphah = 0.11
+    ro = 1.225
+    yrs = 20.
+    WCOE = 0.1
+    num_pops = 5
+    max_pop_tries = 100
+    aif = 0.34
+    farm_x = 400.
+    farm_y = 400.
+    turb_sep = 200.
+    Eval_Objective = obj.COP
+    Compute_Wake = wm.PARK_3D
+    Compute_Cost = cm.offshore_cost
+    probwui = [[0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889],  [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889]]
+    rr = [40.] * 8
+    hh = [80.] * 8
+    cut_in = 3.
+    rated = 12.
+    cut_out = 25.
+    Cp = 0.4
+    availability = 0.95
+    nwp = False
+    extra = False
+    depth = 200.
+    distance_to_shore = 32.
+    a = 27.
+    directions = [i * 10. / 180 * np.pi for i in range(36)]
+    mesh_width = 200.
+    output = op_al.EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0,
+                            Zref, alphah, ro, yrs, WCOE, num_pops,
+                            max_pop_tries, aif, farm_x, farm_y, turb_sep,
+                            Eval_Objective, Compute_Wake, Compute_Cost,
+                            probwui, rr, hh, cut_in, rated, cut_out, Cp,
+                            availability, nwp, extra, depth, distance_to_shore,
+                            a, directions, mesh_width)
+    sorted_x = sorted(output[0])
+    sorted_y = sorted(output[1])
+    assert sorted_x == [0., 0., 0., 200., 200., 400., 400., 400.]
+    assert sorted_y == [0., 0., 0., 200., 200., 400., 400., 400.]
+    xlocation = [0., 200., 400., 600., 800.,
+                 0., 200., 400., 600., 800.,
+                 0., 200., 400., 600., 800., 0.]
+    ylocation = [0., 0., 0., 0., 0.,
+                 200., 200., 200., 200., 200.,
+                 400., 400., 400., 400., 400., 600.]
+    farm_x = 800.
+    farm_y = 800.
+    output = op_al.EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0,
+                            Zref, alphah, ro, yrs, WCOE, num_pops,
+                            max_pop_tries, aif, farm_x, farm_y, turb_sep,
+                            Eval_Objective, Compute_Wake, Compute_Cost,
+                            probwui, rr, hh, cut_in, rated, cut_out, Cp,
+                            availability, nwp, extra, depth, distance_to_shore,
+                            a, directions, mesh_width)
+    sorted_x = sorted(output[0])
+    sorted_y = sorted(output[1])
+    assert sorted_x == [0., 0., 0., 0., 0.,
+                        200., 200.,
+                        400., 400.,
+                        600., 600.,
+                        800., 800., 800., 800., 800.]
+    assert sorted_y == [0., 0., 0., 0., 0.,
+                        200., 200.,
+                        400., 400.,
+                        600., 600.,
+                        800., 800., 800., 800., 800.]
+
+
 if __name__ == '__main__':
     pass

@@ -451,8 +451,8 @@ def EPS(xlocation, ylocation, init_step, minstep,
                             else:
                                 flag = True  # move kept
                                 nomove = move4 * 1.
-                            # print('turbine ' + str(i)
-                            #       + ' moved right.' + str(move4))
+                                # print('turbine ' + str(i)
+                                #       + ' moved right.' + str(move4))
                             # Add Hubheight search here in future
                             # HubHeight_Search(etc...)
                     # no moves for this turbine at this step size
@@ -499,14 +499,14 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           step2, i, farm_y,
                                                           turb_sep, directions)
                                 innerflag = 1
-                                print('turbine not moved up.')
+                                # print('turbine not moved up.')
                             # evaluation is better,
                             # keep move, go to next turbine
                             else:
                                 flag = True
                                 nomove = move1 * 1.
-                                print('turbine ' + str(i)
-                                      + ' moved up.' + str(move1))
+                                # print('turbine ' + str(i)
+                                #       + ' moved up.' + str(move1))
                                 # Add Hubheight search here in future
                                 # HubHeight_Search(etc...)
                     # move 2 was just unsucessfully attempted
@@ -520,7 +520,7 @@ def EPS(xlocation, ylocation, init_step, minstep,
                         # go to next translation
                         if transflag:
                             innerflag = 2  # move 2 was attempted
-                            print('turbine not left.')
+                            # print('turbine not moved left.')
                         else:
                             tot_evals += 1
                             # if there is no interference, evaluate and store
@@ -548,14 +548,14 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           step2, i, farm_y,
                                                           turb_sep, directions)
                                 innerflag = 2
-                                print('turbine not moved left.')
+                                # print('turbine not moved left.')
                             # evaluation is better,
                             # keep move, go to next turbine
                             else:
                                 flag = True
                                 nomove = move2 * 1.
-                                print('turbine ' + str(i)
-                                      + ' moved left.' + str(move2))
+                                # print('turbine ' + str(i)
+                                #       + ' moved left.' + str(move2))
                                 # Add Hubheight search here in future
                                 # HubHeight_Search(etc...)
                     # move 3 was just unsucessfully attempted
@@ -569,7 +569,7 @@ def EPS(xlocation, ylocation, init_step, minstep,
                         # go to next translation
                         if transflag:
                             innerflag = 3  # move 3 was attempted
-                            print('turbine not moved up.')
+                            # print('turbine not moved up.')
                         else:
                             tot_evals += 1
                             # if there is no interference, evaluate and store
@@ -597,14 +597,14 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           -step2, i, farm_y,
                                                           turb_sep, directions)
                                 innerflag = 3
-                                print('turbine not moved down.')
+                                # print('turbine not moved down.')
                             # evaluation is better,
                             # keep move, go to next turbine
                             else:
                                 flag = True
                                 nomove = move3 * 1.
-                                print('turbine ' + str(i)
-                                      + ' moved down.' + str(move3))
+                                # print('turbine ' + str(i)
+                                #       + ' moved down.' + str(move3))
                                 # Add Hubheight search here in future
                                 # HubHeight_Search(etc...)
                     if innerflag == 3 and not flag:
@@ -618,7 +618,7 @@ def EPS(xlocation, ylocation, init_step, minstep,
                         # go to next translation
                         if transflag:
                             innerflag = 4  # signifies move 4 was attempted
-                            print('Turbine not moved right.')
+                            # print('Turbine not moved right.')
                         # if there is the turbine is in bounds,
                         # evaluate and store
                         else:
@@ -647,11 +647,12 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           -step2, i, farm_y,
                                                           turb_sep, directions)
                                 innerflag = 4
-                                print('Turbine not moved right.')
+                                # print('Turbine not moved right.')
                             else:
                                 flag = True  # signifies movement was kept
                                 nomove = move4 * 1.
-                            print('turbine ', i, ' moved right.', move4)
+                                # print('turbine ' +  str(i)
+                                #       + ' moved right.' + str(move4))
                             # Add Hubheight search here in future
                             # HubHeight_Search(etc...)
                     # no moves for this turbine at this step size
@@ -664,6 +665,10 @@ def EPS(xlocation, ylocation, init_step, minstep,
             exit_css = sum(stopped)
             print(exit_css)
             if exit_css == initial_num:
+                plt.figure()
+                plt.scatter(xlocation, ylocation)
+                for i in range(len(xlocation)):
+                    plt.annotate(i, (xlocation[i][0], ylocation[i][0]))
                 # all turbines have stopped moving at this step size
                 # find worst performing turbine and randomly assign elsewhere
                 for b in range(0, num_pops):
@@ -818,7 +823,10 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
             x_opts = int(farm_x / mesh_width)
             y_opts = int(farm_y / mesh_width)
         eval_ct += 1
-
+        plt.figure()
+        plt.scatter([i[0] for i in xlocation],
+                    [i[0] for i in ylocation])
+        plt.title('initial locations')
         step2 = init_step * mesh_width
         while step2 >= minstep:
             random_vec = Rand_Vector(initial_num)
@@ -826,7 +834,7 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
             for j in range(0, len(random_vec)):
                 i = random_vec[j]
                 Stopped[i] = 0
-                # print('Turbine ', i, ' is being tested.', nomove)
+                print('Turbine ', i, ' is being tested.', nomove)
                 flag = 0
                 innerflag = 0
                 transflag = 0
@@ -878,7 +886,7 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                             # go to next turbine
                             flag = 1
                             nomove = move2 * 1.
-                            # print('turbine ', i, ' moved up.', move2)
+                            print('turbine ', i, ' moved up.', move2)
                             # print('new y-location: ', ylocation[i])
                             # print(nomove)
                             # HubHeight_Search(etc...)
@@ -925,7 +933,7 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                             # go to next turbine
                             flag = 1
                             nomove = move3 * 1.
-                            # print('turbine ', i, ' moved left.', move3)
+                            print('turbine ', i, ' moved left.', move3)
                             # print('new x-location: ', xlocation[i])
                             # print(nomove)
                             # HubHeight_Search(etc...)
@@ -974,7 +982,7 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                             flag = 1
                             nomove = move4 * 1.
                             # print(nomove)
-                            # print('turbine ', i, ' moved down.', move4)
+                            print('turbine ', i, ' moved down.', move4)
                             # print('new y-location: ', ylocation[i])
                             # HubHeight_Search(etc...)
                 if innerflag == 3 and flag == 0:
@@ -1023,7 +1031,7 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                             flag = 1
                             # signifies movement was kept
                             nomove = move1 * 1.
-                            # print('turbine ', i, ' moved right.', move1)
+                            print('turbine ', i, ' moved right.', move1)
                             # print('new x-location: ', xlocation[i])
                             # print(nomove)
                         # HubHeight_Search(etc...)
@@ -1040,7 +1048,8 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
             print(exit_css)
             if exit_css == initial_num:
                 plt.figure()
-                plt.scatter(xlocation, ylocation)
+                plt.scatter([i[0] for i in xlocation],
+                            [i[0] for i in ylocation])
                 for i in range(len(xlocation)):
                     plt.annotate(i, (xlocation[i][0], ylocation[i][0]))
                 # all turbines have stopped moving at this step size,
@@ -1066,6 +1075,8 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                     flag = 0
                     while flag == 0 and k < max_pop_tries:
                         k += 1
+                        if k % 50 == 0:
+                            print('pop attempt: ', k)
                         # will try random locations until one has no
                         # interference
                         newx = [(int(random.uniform(0, x_opts))

@@ -19,6 +19,7 @@ import warnings
 import random
 import matplotlib.pyplot as plt
 from time import time
+import numpy as np
 
 
 # Take variables from input spreadsheet
@@ -217,11 +218,11 @@ def random_layout(initial_num, site_x, site_y, turb_sep,
     yloc = [[0.] for i in range(initial_num)]
     if disc[0]:
         if site_x % disc[1] == 0 and site_y % disc[1] == 0:
-            x_opt = int(site_x / disc[1] + 1)
-            y_opt = int(site_y / disc[1] + 1)
-        else:
             x_opt = int(site_x / disc[1])
             y_opt = int(site_y / disc[1])
+        else:
+            x_opt = int(site_x / disc[1] - 1)
+            y_opt = int(site_y / disc[1] - 1)
     for n in range(0, initial_num):
         reset = 0
         checkx = 0
@@ -299,6 +300,20 @@ def set_up_EPS(variables, values):
         optimized (xlocation, ylocation, power, nomove, tot_evals)
     """
     xlocations, ylocations = starting_locations(variables, values)
+    directions = values[variables.index('directions')]
+    for i in range(len(xlocations)):
+        full_x = [xlocations[i][0]]
+        full_y = [ylocations[i][0]]
+        for j in range(1, len(directions)):
+            theta = directions[j] / 180. * np.pi
+            full_x.append((full_x[0] * np.cos(theta))
+                          - (full_y[0] * np.sin(theta)))
+            full_y.append((full_x[0] * np.sin(theta))
+                          + (full_y[0] * np.cos(theta)))
+        xlocations[i] = full_x
+        ylocations[i] = full_y
+    values[variables.index('directions')] = [(i / 180.
+                                              * np.pi) for i in directions]
     start_time = time()
     output = oa.EPS(xlocations, ylocations,
                     values[variables.index('init_step')],
@@ -348,6 +363,20 @@ def set_up_discEPS(variables, values):
         optimized (xlocation, ylocation, power, nomove, tot_evals)
     """
     xlocations, ylocations = starting_locations(variables, values)
+    directions = values[variables.index('directions')]
+    for i in range(len(xlocations)):
+        full_x = [xlocations[i][0]]
+        full_y = [ylocations[i][0]]
+        for j in range(1, len(directions)):
+            theta = directions[j] / 180. * np.pi
+            full_x.append((full_x[0] * np.cos(theta))
+                          - (full_y[0] * np.sin(theta)))
+            full_y.append((full_x[0] * np.sin(theta))
+                          + (full_y[0] * np.cos(theta)))
+        xlocations[i] = full_x
+        ylocations[i] = full_y
+    values[variables.index('directions')] = [(i / 180.
+                                              * np.pi) for i in directions]
     start_time = time()
     output = oa.EPS_disc(xlocations, ylocations,
                          values[variables.index('init_step')],
