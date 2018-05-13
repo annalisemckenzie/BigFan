@@ -143,7 +143,7 @@ def test_disc_EPS():
     xlocation = [0., 200., 400., 0., 200., 400., 0., 200.]
     ylocation = [0., 0., 0., 200., 200., 200., 400., 400.]
     directions = [i * 10. / 180 * np.pi for i in range(36)]
-    ct = 0.
+    ct = 0
     for i, j in zip(xlocation, ylocation):
         new_x = []
         new_y = []
@@ -221,7 +221,7 @@ def test_disc_EPS():
     ylocation = [0., 0., 0., 0., 0.,
                  200., 200., 200., 200., 200.,
                  400., 400., 400., 400., 400., 600.]
-    ct = 0.
+    ct = 0
     for i, j in zip(xlocation, ylocation):
         new_x = []
         new_y = []
