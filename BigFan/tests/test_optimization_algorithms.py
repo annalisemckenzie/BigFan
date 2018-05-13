@@ -142,6 +142,19 @@ def test_translate_chromosome():
 def test_disc_EPS():
     xlocation = [0., 200., 400., 0., 200., 400., 0., 200.]
     ylocation = [0., 0., 0., 200., 200., 200., 400., 400.]
+    directions = [i * 10. / 180 * np.pi for i in range(36)]
+    ct = 0.
+    for i, j in zip(xlocation, ylocation):
+        new_x = []
+        new_y = []
+        for j in range(1, len(directions)):
+            new_x.append((i[0] * np.cos(directions[j]))
+                         - (j[0] * np.sin(directions[j])))
+            new_y.append((i[0] * np.sin(directions[j]))
+                         + (j[0] * np.cos(directions[j])))
+        xlocation[ct] = new_x
+        ylocation[ct] = new_y
+        ct += 1
     init_step = 8.
     minstep = 1.
     z0 = 0.005
@@ -190,7 +203,6 @@ def test_disc_EPS():
     depth = 200.
     distance_to_shore = 32.
     a = 27.
-    directions = [i * 10. / 180 * np.pi for i in range(36)]
     mesh_width = 200.
     output = op_al.EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0,
                             Zref, alphah, ro, yrs, WCOE, num_pops,
@@ -209,6 +221,18 @@ def test_disc_EPS():
     ylocation = [0., 0., 0., 0., 0.,
                  200., 200., 200., 200., 200.,
                  400., 400., 400., 400., 400., 600.]
+    ct = 0.
+    for i, j in zip(xlocation, ylocation):
+        new_x = []
+        new_y = []
+        for j in range(1, len(directions)):
+            new_x.append((i[0] * np.cos(directions[j]))
+                         - (j[0] * np.sin(directions[j])))
+            new_y.append((i[0] * np.sin(directions[j]))
+                         + (j[0] * np.cos(directions[j])))
+        xlocation[ct] = new_x
+        ylocation[ct] = new_y
+        ct += 1
     farm_x = 800.
     farm_y = 800.
     output = op_al.EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0,
