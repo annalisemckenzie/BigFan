@@ -823,10 +823,10 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
             x_opts = int(farm_x / mesh_width)
             y_opts = int(farm_y / mesh_width)
         eval_ct += 1
-        plt.figure()
-        plt.scatter([i[0] for i in xlocation],
-                    [i[0] for i in ylocation])
-        plt.title('initial locations')
+        # plt.figure()
+        # plt.scatter([i[0] for i in xlocation],
+        #             [i[0] for i in ylocation])
+        # plt.title('initial locations')
         step2 = init_step * mesh_width
         while step2 >= minstep:
             random_vec = Rand_Vector(initial_num)
@@ -1047,11 +1047,11 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                 exit_css += Stopped[i]
             print(exit_css)
             if exit_css == initial_num:
-                plt.figure()
-                plt.scatter([i[0] for i in xlocation],
-                            [i[0] for i in ylocation])
-                for i in range(len(xlocation)):
-                    plt.annotate(i, (xlocation[i][0], ylocation[i][0]))
+#                plt.figure()
+#                plt.scatter([i[0] for i in xlocation],
+#                            [i[0] for i in ylocation])
+#                for i in range(len(xlocation)):
+#                    plt.annotate(i, (xlocation[i][0], ylocation[i][0]))
                 # all turbines have stopped moving at this step size,
                 # halving step size.
                 # find worst performing turbine and randomly assign elsewhere
