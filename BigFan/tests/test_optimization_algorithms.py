@@ -148,10 +148,10 @@ def test_disc_EPS():
         new_x = []
         new_y = []
         for j in range(1, len(directions)):
-            new_x.append((i[0] * np.cos(directions[j]))
-                         - (j[0] * np.sin(directions[j])))
-            new_y.append((i[0] * np.sin(directions[j]))
-                         + (j[0] * np.cos(directions[j])))
+            new_x.append((i * np.cos(directions[j]))
+                         - (j * np.sin(directions[j])))
+            new_y.append((i * np.sin(directions[j]))
+                         + (j * np.cos(directions[j])))
         xlocation[ct] = new_x
         ylocation[ct] = new_y
         ct += 1
@@ -226,10 +226,10 @@ def test_disc_EPS():
         new_x = []
         new_y = []
         for j in range(1, len(directions)):
-            new_x.append((i[0] * np.cos(directions[j]))
-                         - (j[0] * np.sin(directions[j])))
-            new_y.append((i[0] * np.sin(directions[j]))
-                         + (j[0] * np.cos(directions[j])))
+            new_x.append((i * np.cos(directions[j]))
+                         - (j * np.sin(directions[j])))
+            new_y.append((i * np.sin(directions[j]))
+                         + (j * np.cos(directions[j])))
         xlocation[ct] = new_x
         ylocation[ct] = new_y
         ct += 1
