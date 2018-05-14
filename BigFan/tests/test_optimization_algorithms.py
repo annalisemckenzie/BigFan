@@ -213,7 +213,7 @@ def test_disc_EPS():
                             a, directions, mesh_width)
     sorted_x = sorted(output[0])
     sorted_y = sorted(output[1])
-    assert np.allclose(sorted_x, [0., 0., 0., 200., 200., 400., 400., 400.].
+    assert np.allclose(sorted_x, [0., 0., 0., 200., 200., 400., 400., 400.],
                        atol=1e-2)
     assert np.allclose(sorted_y, [0., 0., 0., 200., 200., 400., 400., 400.],
                        atol=1e-2)
