@@ -1100,9 +1100,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                                             + (newy[0] * np.cos(theta)))
                             xlocation[min_turb] = newx
                             ylocation[min_turb] = newy
-                            print('min_turb', min_turb)
-                            print(len(newx))
-                            print(len(newy))
 
                             new_eval, power = Eval_Objective(Compute_Wake,
                                                              Compute_Cost,

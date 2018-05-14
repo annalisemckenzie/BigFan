@@ -98,6 +98,9 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
     power = [[] for ii in range(initial_num)]
     # figure out which turbines are downstream of which other turbines
     # and how far downstream they are
+    set1 = set([len(i) for i in xlocs])
+    if len(set1) != 1:
+        print(xlocs)
     for j in range(initial_num):  # downstream turbine
         upstrm = []
         distanceus = []
