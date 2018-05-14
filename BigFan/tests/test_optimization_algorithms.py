@@ -211,8 +211,8 @@ def test_disc_EPS():
                             probwui, rr, hh, cut_in, rated, cut_out, Cp,
                             availability, nwp, extra, depth, distance_to_shore,
                             a, directions, mesh_width)
-    sorted_x = sorted(output[0])
-    sorted_y = sorted(output[1])
+    sorted_x = sorted([i[0] for i in output[0]])
+    sorted_y = sorted([i[0] for i in output[1]])
     assert np.allclose(sorted_x, [0., 0., 0., 200., 200., 400., 400., 400.],
                        atol=1e-2)
     assert np.allclose(sorted_y, [0., 0., 0., 200., 200., 400., 400., 400.],

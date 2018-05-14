@@ -698,9 +698,6 @@ def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                         else:
                             # flattened to 2D
                             z = (krad + jwakerad - cd) / (krad * 2.)
-                            print(jwakerad)
-                            print(cd)
-                            print(krad)
                             # percentage of RSA that has wake interaction
                             parpercent.append(z)
 
