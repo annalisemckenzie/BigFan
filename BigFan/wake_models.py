@@ -118,7 +118,13 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                 if j != i:
                     hubheight = hh[i]
                     alpha = 0.5 / (np.log(hubheight / z0))
-                    y = ylocs[i][direction]
+                    try:
+                        y = ylocs[i][direction]
+                    except IndexError:
+                        print('turbine', i)
+                        print('direction', direction)
+                        print(len(ylocs))
+                        print(len(ylocs[i]))
                     x = xlocs[i][direction]
                     # Sets dis to max downstream distance
                     dis = farm_y - y
