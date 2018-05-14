@@ -804,8 +804,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
         optimized objctive
         Number of objective evaluations until convergence
     """
-    print(len(xlocation[0]))
-    print(len(xlocation[1]))
     initial_num = len(xlocation)
     eval_ct = 0
     Stopped = [0 for i in range(initial_num)]

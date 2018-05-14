@@ -364,15 +364,18 @@ def set_up_discEPS(variables, values):
     """
     xlocations, ylocations = starting_locations(variables, values)
     directions = values[variables.index('directions')]
+    print('len(directions: ', len(directions))
     for i in range(len(xlocations)):
-        full_x = [xlocations[i][0]]
-        full_y = [ylocations[i][0]]
-        for j in range(1, len(directions)):
+        start_x = xlocations[i][0]
+        start_y = ylocations[i][0]
+        full_x = []
+        full_y = []
+        for j in range(len(directions)):
             theta = directions[j] / 180. * np.pi
-            full_x.append((full_x[0] * np.cos(theta))
-                          - (full_y[0] * np.sin(theta)))
-            full_y.append((full_x[0] * np.sin(theta))
-                          + (full_y[0] * np.cos(theta)))
+            full_x.append((start_x[0] * np.cos(theta))
+                          - (start_y[0] * np.sin(theta)))
+            full_y.append((start_x[0] * np.sin(theta))
+                          + (start_y[0] * np.cos(theta)))
         xlocations[i] = full_x
         ylocations[i] = full_y
     values[variables.index('directions')] = [(i / 180.
