@@ -1100,8 +1100,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                                             - (newy[0] * np.sin(theta)))
                                 newy.append((newx[0] * np.sin(theta))
                                             + (newy[0] * np.cos(theta)))
-                            print('no interference. len(newx): ', len(newx))
-                            print('no interference. len(newy): ', len(newy))
                             xlocation[min_turb] = newx
                             ylocation[min_turb] = newy
 
