@@ -363,6 +363,8 @@ def set_up_discEPS(variables, values):
         optimized (xlocation, ylocation, power, nomove, tot_evals)
     """
     xlocations, ylocations = starting_locations(variables, values)
+    print(len(xlocations[0]))
+    print(len(xlocations[1]))
     directions = values[variables.index('directions')]
     for i in range(len(xlocations)):
         full_x = [xlocations[i][0]]
