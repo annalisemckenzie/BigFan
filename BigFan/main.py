@@ -316,7 +316,6 @@ def set_up_EPS(variables, values):
         ylocations[i] = full_y
     values[variables.index('directions')] = [(i / 180.
                                               * np.pi) for i in directions]
-    raise ValueError
     start_time = time()
     output = oa.EPS(xlocations, ylocations,
                     values[variables.index('init_step')],
