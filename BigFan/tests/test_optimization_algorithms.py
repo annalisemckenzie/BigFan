@@ -23,10 +23,10 @@ def test_check_interference():
     index = 2
     turb_sep = 100.
     exp_val = op_al.Check_Interference(xlocation, ylocation, index, turb_sep)
-    assert exp_val == False
+    assert not exp_val
     turb_sep = 300.
     exp_val = op_al.Check_Interference(xlocation, ylocation, index, turb_sep)
-    assert exp_val == True
+    assert exp_val
 
 
 # test x translation
@@ -213,8 +213,10 @@ def test_disc_EPS():
                             a, directions, mesh_width)
     sorted_x = sorted(output[0])
     sorted_y = sorted(output[1])
-    assert sorted_x == [0., 0., 0., 200., 200., 400., 400., 400.]
-    assert sorted_y == [0., 0., 0., 200., 200., 400., 400., 400.]
+    assert np.allclose(sorted_x, [0., 0., 0., 200., 200., 400., 400., 400.].
+                       atol=1e-2)
+    assert np.allclose(sorted_y, [0., 0., 0., 200., 200., 400., 400., 400.],
+                       atol=1e-2)
     xlocation = [0., 200., 400., 600., 800.,
                  0., 200., 400., 600., 800.,
                  0., 200., 400., 600., 800., 0.]
@@ -244,16 +246,16 @@ def test_disc_EPS():
                             a, directions, mesh_width)
     sorted_x = sorted(output[0])
     sorted_y = sorted(output[1])
-    assert sorted_x == [0., 0., 0., 0., 0.,
-                        200., 200.,
-                        400., 400.,
-                        600., 600.,
-                        800., 800., 800., 800., 800.]
-    assert sorted_y == [0., 0., 0., 0., 0.,
-                        200., 200.,
-                        400., 400.,
-                        600., 600.,
-                        800., 800., 800., 800., 800.]
+    assert np.allclose(sorted_x, [0., 0., 0., 0., 0.,
+                                  200., 200.,
+                                  400., 400.,
+                                  600., 600.,
+                                  800., 800., 800., 800., 800.], 1e-2)
+    assert np.allclose(sorted_y, [0., 0., 0., 0., 0.,
+                                  200., 200.,
+                                  400., 400.,
+                                  600., 600.,
+                                  800., 800., 800., 800., 800.], atol=1e-2)
 
 
 if __name__ == '__main__':
