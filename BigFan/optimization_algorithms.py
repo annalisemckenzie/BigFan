@@ -806,9 +806,9 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
     eval_ct = 0
     Stopped = [0 for i in range(initial_num)]
     print('xlocation')
-    print(xlocation)
+    print([i[0] for i in xlocation])
     print('ylocation')
-    print(ylocation)
+    print([i[0] for i in ylocation])
     for h in range(0, 1):
         nomove, power = Eval_Objective(Compute_Wake, Compute_Cost, xlocation,
                                        ylocation, rr, hh, z0, U0, probwui,
@@ -1051,6 +1051,10 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                 exit_css += Stopped[i]
             print(exit_css)
             if exit_css == initial_num:
+                print('xlocation')
+                print([i[0] for i in xlocation])
+                print('ylocation')
+                print([i[0] for i in ylocation])
                 # plt.figure()
                 # plt.scatter([i[0] for i in xlocation],
                 #             [i[0] for i in ylocation])
@@ -1141,9 +1145,9 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                     init_step = int(init_step / 2.)
                 step2 = init_step * mesh_width
     print('xlocation')
-    print(xlocation)
+    print([i[0] for i in xlocation])
     print('ylocation')
-    print(ylocation)
+    print([i[0] for i in ylocation])
     return xlocation, ylocation, power, nomove, eval_ct
 
 
