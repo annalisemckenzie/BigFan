@@ -204,21 +204,19 @@ def test_disc_EPS():
     distance_to_shore = 32.
     a = 17.19
     mesh_width = 200.
-#    output = op_al.EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0,
-#                            Zref, alphah, ro, yrs, WCOE, num_pops,
-#                            max_pop_tries, aif, farm_x, farm_y, turb_sep,
-#                            Eval_Objective, Compute_Wake, Compute_Cost,
-#                            probwui, rr, hh, cut_in, rated, cut_out, Cp,
-#                            availability, nwp, extra, depth, distance_to_shore,
-#                            a, directions, mesh_width)
-#    sorted_x = sorted([i[0] for i in output[0]])
-#    sorted_y = sorted([i[0] for i in output[1]])
-#    print(sorted_x)
-#    print(sorted_y)
-#    assert np.allclose(sorted_x, [0., 0., 0., 200., 200., 400., 400., 400.],
-#                       atol=1e-2)
-#    assert np.allclose(sorted_y, [0., 0., 0., 200., 200., 400., 400., 400.],
-#                       atol=1e-2)
+    output = op_al.EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0,
+                            Zref, alphah, ro, yrs, WCOE, num_pops,
+                            max_pop_tries, aif, farm_x, farm_y, turb_sep,
+                            Eval_Objective, Compute_Wake, Compute_Cost,
+                            probwui, rr, hh, cut_in, rated, cut_out, Cp,
+                            availability, nwp, extra, depth, distance_to_shore,
+                            a, directions, mesh_width)
+    sorted_x = sorted([i[0] for i in output[0]])
+    sorted_y = sorted([i[0] for i in output[1]])
+    assert np.allclose(sorted_x, [0., 0., 0., 200., 200., 400., 400., 400.],
+                       atol=1e-2)
+    assert np.allclose(sorted_y, [0., 0., 0., 200., 200., 400., 400., 400.],
+                       atol=1e-2, rtol=0.01)
     xlocation = [0., 200., 400., 600., 800.,
                  0., 200., 400., 600., 800.,
                  0., 200., 400., 600., 800., 0.]
@@ -254,7 +252,7 @@ def test_disc_EPS():
                                   200., 200.,
                                   400., 400.,
                                   600., 600.,
-                                  800., 800., 800., 800., 800.], 1e-2)
+                                  800., 800., 800., 800., 800.], atol=1e-2)
     assert np.allclose(sorted_y, [0., 0., 0., 0., 0.,
                                   200., 200.,
                                   400., 400.,
