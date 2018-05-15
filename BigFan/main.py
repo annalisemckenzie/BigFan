@@ -366,7 +366,6 @@ def set_up_discEPS(variables, values):
     """
     xlocations, ylocations = starting_locations(variables, values)
     directions = values[variables.index('directions')]
-    print('len(directions: ', len(directions))
     for i in range(len(xlocations)):
         start_x = xlocations[i][0]
         start_y = ylocations[i][0]

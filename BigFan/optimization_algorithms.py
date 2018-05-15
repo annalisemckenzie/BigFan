@@ -95,12 +95,10 @@ def translate_x(xlocation, ylocation, step_size, index, farm_x,
                         + np.cos(rads) * ylocation[index][0])
         xlocation[index] = newx  # update turbine coordinates
         ylocation[index] = newy
-        print(len(xlocation[index]))
         return transflag, xlocation, ylocation  # return no error
     else:
         xlocation[index] = xstart
         transflag = True  # return error
-        print(len(xlocation[index]))
         return transflag, xlocation, ylocation
 
 
