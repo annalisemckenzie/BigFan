@@ -805,10 +805,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
     initial_num = len(xlocation)
     eval_ct = 0
     Stopped = [0 for i in range(initial_num)]
-    print('xlocation')
-    print([i[0] for i in xlocation])
-    print('ylocation')
-    print([i[0] for i in ylocation])
     for h in range(0, 1):
         nomove, power = Eval_Objective(Compute_Wake, Compute_Cost, xlocation,
                                        ylocation, rr, hh, z0, U0, probwui,
@@ -838,7 +834,7 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
             for j in range(0, len(random_vec)):
                 i = random_vec[j]
                 Stopped[i] = 0
-                print('Turbine ', i, ' is being tested.', nomove)
+                # print('Turbine ', i, ' is being tested.', nomove)
                 flag = 0
                 innerflag = 0
                 transflag = 0
@@ -890,7 +886,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                             # go to next turbine
                             flag = 1
                             nomove = move2 * 1.
-                            print('turbine ', i, ' moved up.', move2)
                             # print('new y-location: ', ylocation[i])
                             # print(nomove)
                             # HubHeight_Search(etc...)
@@ -937,7 +932,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                             # go to next turbine
                             flag = 1
                             nomove = move3 * 1.
-                            print('turbine ', i, ' moved left.', move3)
                             # print('new x-location: ', xlocation[i])
                             # print(nomove)
                             # HubHeight_Search(etc...)
@@ -986,7 +980,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                             flag = 1
                             nomove = move4 * 1.
                             # print(nomove)
-                            print('turbine ', i, ' moved down.', move4)
                             # print('new y-location: ', ylocation[i])
                             # HubHeight_Search(etc...)
                 if innerflag == 3 and flag == 0:
@@ -1035,7 +1028,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                             flag = 1
                             # signifies movement was kept
                             nomove = move1 * 1.
-                            print('turbine ', i, ' moved right.', move1)
                             # print('new x-location: ', xlocation[i])
                             # print(nomove)
                         # HubHeight_Search(etc...)
@@ -1049,12 +1041,7 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
             # exit current step size
             for i in range(0, initial_num):
                 exit_css += Stopped[i]
-            print(exit_css)
             if exit_css == initial_num:
-                print('xlocation')
-                print([i[0] for i in xlocation])
-                print('ylocation')
-                print([i[0] for i in ylocation])
                 # plt.figure()
                 # plt.scatter([i[0] for i in xlocation],
                 #             [i[0] for i in ylocation])
@@ -1141,10 +1128,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                 else:
                     init_step = int(init_step / 2.)
                 step2 = init_step * mesh_width
-    print('xlocation')
-    print([i[0] for i in xlocation])
-    print('ylocation')
-    print([i[0] for i in ylocation])
     return xlocation, ylocation, power, nomove, eval_ct
 
 

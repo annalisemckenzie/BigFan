@@ -382,6 +382,8 @@ def set_up_discEPS(variables, values):
     values[variables.index('directions')] = [(i / 180.
                                               * np.pi) for i in directions]
     start_time = time()
+    for i, j in zip(variables, values):
+        print(i, j)
     output = oa.EPS_disc(xlocations, ylocations,
                          values[variables.index('init_step')],
                          values[variables.index('minstep')],
