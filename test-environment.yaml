@@ -8,4 +8,3 @@ dependencies:
   - pytest-cov
   - pint>=0.7.2
   - matplotlib
-  - fenics
