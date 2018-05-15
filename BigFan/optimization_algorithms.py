@@ -979,7 +979,7 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                                                       step2, i, farm_y,
                                                       turb_sep, directions)
                             innerflag = 3
-                            # print('turbine not moved down.')
+                            # print('turbine not moved down. worse eval')
                         else:
                             # evaluation is better, keep move,
                             # go to next turbine
@@ -1030,7 +1030,7 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                                                       turb_sep,
                                                       directions)
                             innerflag = 4
-                            # print('Turbine not moved right.')
+                            # print('Turbine not moved right. worse eval')
                         else:
                             flag = 1
                             # signifies movement was kept
@@ -1072,9 +1072,8 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                     # creates a randomly ordered vector of turbines
                     for j in range(0, initial_num):
                         randorder = random_vec2[j]
-                        Power = sum([sum(i) for i in power])
-                        if Power < min_power:
-                            min_power = Power
+                        if sum(power[randorder]) < min_power:
+                            min_power = sum(power[randorder])
                             min_turb = randorder
 
                     initialx = xlocation[min_turb]
@@ -1083,8 +1082,6 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                     flag = 0
                     while flag == 0 and k < max_pop_tries:
                         k += 1
-                        if k % 50 == 0:
-                            print('pop attempt: ', k)
                         # will try random locations until one has no
                         # interference
                         newx = [(int(random.uniform(0, x_opts))
