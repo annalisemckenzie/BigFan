@@ -1162,15 +1162,15 @@ def translate_chromosome(chromosome, binary_x, options_x,
         for j in range(binary_x):  # iterate through this many genes
             binary_add += (2 ** j) * chromosome[k]  # add the points
             k += 1
-        if binary_add <= options_x:
+        if binary_add <= (options_x - 1):
             # don't need further manipulation
-            match_point = ((float(binary_add) - 1.) * mesh_size)
+            match_point = (float(binary_add) * mesh_size)
         else:
             print('outside farm x')
-            binary_add -= options_x + 1
+            binary_add -= options_x
             # if value is too high, split evenly among possible points
-            equiv_ratio = binary_add / ((2 ** binary_x) - options_x - 1.)
-            match_point = float(int(equiv_ratio * (options_x)) * mesh_size)
+            equiv_ratio = binary_add / (options_x - 1.)
+            match_point = float(int(equiv_ratio) * mesh_size)
             # print('binary sum greater than possible points')
             # print(match_point)
         x.append(match_point)
@@ -1181,14 +1181,14 @@ def translate_chromosome(chromosome, binary_x, options_x,
         for j in range(binary_y):  # iterate through this many genes
             binary_add += (2 ** j) * chromosome[k]  # add the points
             k += 1
-        if binary_add <= (options_y):
+        if binary_add <= (options_y - 1):
             # don't need further manipulation
-            match_point = ((float(binary_add) - 1) * mesh_size)
+            match_point = (float(binary_add) * mesh_size)
         else:
-            binary_add -= options_y + 1
+            binary_add -= options_y
             # if value is too high, split evenly among possible points
-            equiv_ratio = binary_add / ((2 ** binary_y) - options_y - 1.)
-            match_point = float(int(equiv_ratio * (options_y)) * mesh_size)
+            equiv_ratio = binary_add / (options_y - 1.)
+            match_point = float(int(equiv_ratio) * mesh_size)
             # print('binary sum greater than possible points')
             # print(match_point)
         y.append(match_point)
