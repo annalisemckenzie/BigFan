@@ -130,8 +130,10 @@ def test_translate_chromosome():
     exp = op_al.translate_chromosome(chromosome, binary_x, options_x,
                                      binary_y, options_y, mesh_size,
                                      directions)
-    assert exp == ([[50., -40.000000000000007], [40., -40.000000000000007]],
-                   [[70., -70.], [40., -39.999999999999993]])
+    assert np.allclose(exp,
+                       ([[50., -50], [40., -40]],
+                        [[70., -70.], [40., -40.]]),
+                       atol=1e-3, rtol=1e-3)
     chromosome = [-1, 0, 2, 3, 4, 1, 2, 1]
     with pytest.raises(ValueError):
         exp = op_al.translate_chromosome(chromosome, binary_x, options_x,
@@ -344,7 +346,7 @@ def test_GA():
                                   200., 200.,
                                   400., 400., 400.],
                        atol=1e-2, rtol=0.01)
-    assert np.allclose(sorted_y, [0., 0., 0., 0., 0.,
+    assert np.allclose(sorted_y, [0., 0., 0.,
                                   200., 200.,
                                   400., 400., 400.],
                        atol=1e-2, rtol=0.01)
