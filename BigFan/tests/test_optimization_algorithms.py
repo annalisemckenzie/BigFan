@@ -310,8 +310,8 @@ def test_GA():
                [0.013888889, 0.013888889], [0.013888889, 0.013888889],
                [0.013888889, 0.013888889], [0.013888889, 0.013888889],
                [0.013888889, 0.013888889], [0.013888889, 0.013888889]]
-    rr = [40.] * 12
-    hh = [80.] * 12
+    rr = [40.] * 8
+    hh = [80.] * 8
     cut_in = 3.5
     rated = 12.
     cut_out = 25.
@@ -323,14 +323,14 @@ def test_GA():
     distance_to_shore = 32.
     a = 17.19
     mesh_size = 200.
-    farm_x = 600.
-    farm_y = 600.
+    farm_x = 400.
+    farm_y = 400.
     elite = 0.1
     mateable_range = 0.8
     mutation_rate = 0.05
-    population_size = 100
-    generations_to_converge = 100
-    initial_num = 12
+    population_size = 20
+    generations_to_converge = 20
+    initial_num = 8
     output = op_al.GA(mesh_size, elite, mateable_range, mutation_rate,
                       z0, U0, Zref, alphah, ro, yrs, WCOE, initial_num,
                       population_size, generations_to_converge, aif, farm_x,
@@ -340,17 +340,13 @@ def test_GA():
                       a, directions)
     sorted_x = sorted([i[0] for i in output[0]])
     sorted_y = sorted([i[0] for i in output[1]])
-    assert np.allclose(sorted_x, [0., 0., 0., 0., 0.,
+    assert np.allclose(sorted_x, [0., 0., 0.,
                                   200., 200.,
-                                  400., 400.,
-                                  600., 600.,
-                                  800., 800., 800., 800., 800.],
+                                  400., 400., 400.],
                        atol=1e-2, rtol=0.01)
     assert np.allclose(sorted_y, [0., 0., 0., 0., 0.,
                                   200., 200.,
-                                  400., 400.,
-                                  600., 600.,
-                                  800., 800., 800., 800., 800.],
+                                  400., 400., 400.,
                        atol=1e-2, rtol=0.01)
 
 
