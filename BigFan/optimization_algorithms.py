@@ -1382,6 +1382,8 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
                                                    availability, nwp, True,
                                                    depth, yrs, WCOE,
                                                    distance_to_shore, a)
+    print([i[0] for i in xloc])
+    print([i[0] for i in yloc])
     return xloc, yloc, power, obje, evals, windspeeds, cost, k
 
 
