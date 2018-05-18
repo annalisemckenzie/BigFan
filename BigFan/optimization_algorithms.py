@@ -1151,7 +1151,6 @@ def translate_chromosome(chromosome, binary_x, options_x,
         if i != 0 and i != 1:
             raise ValueError('chromosome composed of values other '
                              + 'than 1 and 0')
-
     x = []  # xlocs
     y = []  # ylocs
     k = 0  # actual gene you're on
@@ -1163,11 +1162,11 @@ def translate_chromosome(chromosome, binary_x, options_x,
         for j in range(binary_x):  # iterate through this many genes
             binary_add += (2 ** j) * chromosome[k]  # add the points
             k += 1
-        if binary_add < options_x:
+        if binary_add <= options_x:
             # don't need further manipulation
             match_point = (float(binary_add) * mesh_size)
         else:
-            binary_add -= (options_x + 1)
+            binary_add -= options_x + 1
             # if value is too high, split evenly among possible points
             equiv_ratio = binary_add / ((2 ** binary_x) - options_x - 1.)
             match_point = float(int(equiv_ratio * (options_x)) * mesh_size)
@@ -1181,11 +1180,11 @@ def translate_chromosome(chromosome, binary_x, options_x,
         for j in range(binary_y):  # iterate through this many genes
             binary_add += (2 ** j) * chromosome[k]  # add the points
             k += 1
-        if binary_add < (options_y):
+        if binary_add <= (options_y):
             # don't need further manipulation
             match_point = (float(binary_add) * mesh_size)
         else:
-            binary_add -= (options_y + 1)
+            binary_add -= options_y + 1
             # if value is too high, split evenly among possible points
             equiv_ratio = binary_add / ((2 ** binary_y) - options_y - 1.)
             match_point = float(int(equiv_ratio * (options_y)) * mesh_size)
@@ -1207,7 +1206,7 @@ def translate_chromosome(chromosome, binary_x, options_x,
 
 
 def GA(mesh_size, elite, mateable_range, mutation_rate,
-       z0, U0, Zref, alphah, ro, yrs, WCOE, population_size,
+       z0, U0, Zref, alphah, ro, yrs, WCOE, initial_num, population_size,
        generations_to_converge, aif, farm_x, farm_y, turb_sep, Eval_Objective,
        Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in,
        rated, cut_out, Cp, availability, nwp, extra, depth,
@@ -1266,35 +1265,42 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
     options_x = (farm_x / mesh_size + 1)
     binary_x = np.log(options_x) / np.log(2)
     if binary_x % 1 > 1e-5:
-        binary_x = int(binary_x) + 1
+        binary_x = int(binary_x + 1)
+    else:
+        binary_x = int(binary_x)
     options_y = (farm_y / mesh_size + 1)
     binary_y = np.log(options_y) / np.log(2)
-    if binary_y % 1 > 0e-5:
-        binary_y = int(binary_y) + 1
-    length_gene = int(binary_x) + int(binary_y)
+    if binary_y % 1 > 1e-5:
+        binary_y = int(binary_y + 1)
+    else:
+        binary_y = int(binary_y)
+    length_gene = (int(binary_x) + int(binary_y)) * initial_num
     adults = []
-    for i in range(population_size):
+    while len(adults) < population_size:
         new_adult = [random.randint(0, 1) for ii in range(length_gene)]
         xloc, yloc = translate_chromosome(new_adult, binary_x, options_x,
                                           binary_y, options_y, mesh_size,
                                           directions)
-        obje, power = Eval_Objective(Compute_Wake, Compute_Cost, xloc,
-                                     yloc, rr, hh, z0, U0, probwui, Zref,
-                                     alphah, ro, aif, farm_y, cut_in, rated,
-                                     cut_out, Cp, availability, nwp, extra,
-                                     depth, yrs, WCOE, distance_to_shore, a)
-        evals += 1
-        adults.append(obje, new_adult)
+        interference = Check_Interference(xloc, yloc, 'pop', turb_sep)
+        if not interference:
+            # print('no interference! ', len(adults))
+            obje, power = Eval_Objective(Compute_Wake, Compute_Cost, xloc,
+                                         yloc, rr, hh, z0, U0, probwui, Zref,
+                                         alphah, ro, aif, farm_y, cut_in,
+                                         rated, cut_out, Cp, availability,
+                                         nwp, extra, depth, yrs, WCOE,
+                                         distance_to_shore, a)
+            evals += 1
+            adults.append((obje, new_adult))
     adults = sorted(adults, key=lambda x: x[0])
     k = 0  # iteration counter
     same_best = 0  # stopping criteria
-    adults_kept = int(len(population_size) * elite)
-    adults_mated = int(len(population_size) * mateable_range)
+    adults_kept = int(population_size * elite)
+    adults_mated = int(population_size * mateable_range)
     if adults_mated % 2 != 0:
         adults_mated -= 1
     mating_pairs = int(adults_mated / 2)
-    mutating_kids = int(len(population_size) * mutation_rate)
-
+    mutating_kids = int(population_size * mutation_rate)
     while same_best < generations_to_converge:  # start the ga
         # keep elite
         old_best = adults[0]  # save the best formation found
@@ -1305,7 +1311,6 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
         for crosses in range(mating_pairs):
             mom = adults[2 * crosses][1]  # select mom
             dad = adults[2 * crosses + 1][1]  # select dad as next in line
-
             cross_point = int(random.random() * length_gene)
             cross1 = mom[0:cross_point] + dad[cross_point:]
             cross2 = dad[0:cross_point] + mom[cross_point:]
@@ -1323,7 +1328,6 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
             else:
                 mutant_child[mutant_gene] = 0
             maybe_kids[this_kid] = mutant_child
-
         for i in range(len(maybe_kids)):
             xloc, yloc = translate_chromosome(cross2, binary_x, options_x,
                                               binary_y, options_y, mesh_size,
@@ -1367,7 +1371,7 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
         else:
             same_best = 0
         k += 1
-    xloc, yloc = translate_chromosome(old_best[0][1], binary_x, options_x,
+    xloc, yloc = translate_chromosome(adults[0][1], binary_x, options_x,
                                       binary_y, options_y, mesh_size,
                                       directions)
     obje, power, windspeeds, cost = Eval_Objective(Compute_Wake, Compute_Cost,
@@ -1375,7 +1379,7 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
                                                    hh, z0, U0, probwui, Zref,
                                                    alphah, ro, aif, farm_y,
                                                    cut_in, rated, cut_out, Cp,
-                                                   availability, nwp, extra,
+                                                   availability, nwp, True,
                                                    depth, yrs, WCOE,
                                                    distance_to_shore, a)
     return xloc, yloc, power, obje, evals, windspeeds, cost, k

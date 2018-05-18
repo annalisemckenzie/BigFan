@@ -262,5 +262,97 @@ def test_disc_EPS():
                        atol=1e-2, rtol=0.01)
 
 
+def test_GA():
+    xlocation = [0., 200., 400., 0., 200., 400., 0., 200.]
+    ylocation = [0., 0., 0., 200., 200., 200., 400., 400.]
+    directions = [i * 10. / 180 * np.pi for i in range(36)]
+    ct = 0
+    for i, j in zip(xlocation, ylocation):
+        new_x = [i]
+        new_y = [j]
+        for k in range(1, len(directions)):
+            new_x.append((i * np.cos(directions[k]))
+                         - (j * np.sin(directions[k])))
+            new_y.append((i * np.sin(directions[k]))
+                         + (j * np.cos(directions[k])))
+        xlocation[ct] = new_x
+        ylocation[ct] = new_y
+        ct += 1
+    z0 = 0.0005
+    U0 = [7., 10.]
+    Zref = 80.
+    alphah = 0.11
+    ro = 1.225
+    yrs = 20.
+    WCOE = 0.1
+    aif = 0.314
+    farm_x = 400.
+    farm_y = 400.
+    turb_sep = 200.
+    Eval_Objective = obj.COP
+    Compute_Wake = wm.PARK_3D
+    Compute_Cost = cm.offshore_cost
+    probwui = [[0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889],
+               [0.013888889, 0.013888889], [0.013888889, 0.013888889]]
+    rr = [40.] * 8
+    hh = [80.] * 8
+    cut_in = 3.5
+    rated = 12.
+    cut_out = 25.
+    Cp = 0.5
+    availability = 0.95
+    nwp = False
+    extra = False
+    depth = 200.
+    distance_to_shore = 32.
+    a = 17.19
+    mesh_size = 200.
+    farm_x = 600.
+    farm_y = 600.
+    elite = 0.1
+    mateable_range = 0.8
+    mutation_rate = 0.05
+    population_size = 100
+    generations_to_converge = 100
+    initial_num = 12
+    output = op_al.GA(mesh_size, elite, mateable_range, mutation_rate,
+                      z0, U0, Zref, alphah, ro, yrs, WCOE, initial_num,
+                      population_size, generations_to_converge, aif, farm_x,
+                      farm_y, turb_sep, Eval_Objective, Compute_Wake,
+                      Compute_Cost, probwui, rr, hh, cut_in, rated, cut_out,
+                      Cp, availability, nwp, extra, depth, distance_to_shore,
+                      a, directions)
+    sorted_x = sorted([i[0] for i in output[0]])
+    sorted_y = sorted([i[0] for i in output[1]])
+    assert np.allclose(sorted_x, [0., 0., 0., 0., 0.,
+                                  200., 200.,
+                                  400., 400.,
+                                  600., 600.,
+                                  800., 800., 800., 800., 800.],
+                       atol=1e-2, rtol=0.01)
+    assert np.allclose(sorted_y, [0., 0., 0., 0., 0.,
+                                  200., 200.,
+                                  400., 400.,
+                                  600., 600.,
+                                  800., 800., 800., 800., 800.],
+                       atol=1e-2, rtol=0.01)
+
+
 if __name__ == '__main__':
     pass

@@ -432,7 +432,7 @@ def set_up_GA(variables, values):
     Returns:
         optimized (xlocation, ylocation, power, nomove, tot_evals)
     """
-    start_time = ()
+    start_time = time()
     output = oa.GA(values[variables.index('mesh_size')],
                    values[variables.index('elite')],
                    values[variables.index('mateable_range')],
@@ -444,7 +444,8 @@ def set_up_GA(variables, values):
                    values[variables.index('ro')],
                    values[variables.index('yrs')],
                    values[variables.index('WCOE')],
-                   values[variables.index('population_size')],
+                   int(values[variables.index('initial_num')]),
+                   int(values[variables.index('population_size')]),
                    values[variables.index('generations_to_converge')],
                    values[variables.index('aif')],
                    values[variables.index('site_x')],
@@ -500,7 +501,7 @@ def set_up_PSO(variables, values):
                     values[variables.index('aif')],
                     values[variables.index('yrs')],
                     values[variables.index('WCOE')],
-                    values[variables.index('population_size')],
+                    int(values[variables.index('population_size')]),
                     values[variables.index('generations_to_converge')],
                     values[variables.index('Compute_Wake')],
                     values[variables.index('Compute_Cost')],
