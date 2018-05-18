@@ -1166,7 +1166,6 @@ def translate_chromosome(chromosome, binary_x, options_x,
             # don't need further manipulation
             match_point = (float(binary_add) * mesh_size)
         else:
-            print('outside farm x')
             binary_add -= options_x
             # if value is too high, split evenly among possible points
             equiv_ratio = binary_add / (options_x - 1.)
@@ -1310,6 +1309,7 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
         adults_mated -= 1
     mating_pairs = int(adults_mated / 2)
     mutating_kids = int(population_size * mutation_rate)
+    # print('all adults within range')
     while same_best < generations_to_converge:  # start the ga
         # keep elite
         old_best = adults[0]  # save the best formation found

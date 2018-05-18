@@ -130,7 +130,7 @@ def test_translate_chromosome():
     exp = op_al.translate_chromosome(chromosome, binary_x, options_x,
                                      binary_y, options_y, mesh_size,
                                      directions)
-    assert exp == ([[50., -50.000000000000007], [40., -40.000000000000007]],
+    assert exp == ([[50., -40.000000000000007], [40., -40.000000000000007]],
                    [[70., -70.], [40., -39.999999999999993]])
     chromosome = [-1, 0, 2, 3, 4, 1, 2, 1]
     with pytest.raises(ValueError):
