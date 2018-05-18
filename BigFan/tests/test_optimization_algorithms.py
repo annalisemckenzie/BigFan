@@ -346,7 +346,7 @@ def test_GA():
                        atol=1e-2, rtol=0.01)
     assert np.allclose(sorted_y, [0., 0., 0., 0., 0.,
                                   200., 200.,
-                                  400., 400., 400.,
+                                  400., 400., 400.],
                        atol=1e-2, rtol=0.01)
 
 
