@@ -1164,8 +1164,9 @@ def translate_chromosome(chromosome, binary_x, options_x,
             k += 1
         if binary_add <= options_x:
             # don't need further manipulation
-            match_point = (float(binary_add) * mesh_size)
+            match_point = ((float(binary_add) - 1.) * mesh_size)
         else:
+            print('outside farm x')
             binary_add -= options_x + 1
             # if value is too high, split evenly among possible points
             equiv_ratio = binary_add / ((2 ** binary_x) - options_x - 1.)
@@ -1182,7 +1183,7 @@ def translate_chromosome(chromosome, binary_x, options_x,
             k += 1
         if binary_add <= (options_y):
             # don't need further manipulation
-            match_point = (float(binary_add) * mesh_size)
+            match_point = ((float(binary_add) - 1) * mesh_size)
         else:
             binary_add -= options_y + 1
             # if value is too high, split evenly among possible points
@@ -1274,6 +1275,10 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
         binary_y = int(binary_y + 1)
     else:
         binary_y = int(binary_y)
+    print('binary_x: ', binary_x)
+    print('binary_y: ', binary_y)
+    print('options_x: ', options_x)
+    print('options_y: ', options_y)
     length_gene = (int(binary_x) + int(binary_y)) * initial_num
     adults = []
     while len(adults) < population_size:
@@ -1284,6 +1289,10 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
         interference = Check_Interference(xloc, yloc, 'pop', turb_sep)
         if not interference:
             # print('no interference! ', len(adults))
+            x_big = max([i[0] for i in xloc])
+            y_big = max([i[0] for i in yloc])
+            if x_big > 400. or y_big > 400.:
+                    print('turbine outside of field')
             obje, power = Eval_Objective(Compute_Wake, Compute_Cost, xloc,
                                          yloc, rr, hh, z0, U0, probwui, Zref,
                                          alphah, ro, aif, farm_y, cut_in,
