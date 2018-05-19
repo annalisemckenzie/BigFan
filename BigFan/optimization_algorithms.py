@@ -1391,17 +1391,15 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
                                                    availability, nwp, True,
                                                    depth, yrs, WCOE,
                                                    distance_to_shore, a)
-    print([i[0] for i in xloc])
-    print([i[0] for i in yloc])
     return xloc, yloc, power, obje, evals, windspeeds, cost, k
 
 
 def PSO(self_weight, global_weight, swarm_size, initial_num,
         farm_x, farm_y, turb_sep, generations_to_converge,
         Eval_Objective, constraint_scale, z0, U0, Zref, alphah, ro, aif, yrs,
-        WCOE, Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in, rated,
-        cut_out, Cp, availability, nwp, extra, depth, distance_to_shore,
-        a, directions):
+        WCOE, Compute_Wake, Compute_Cost, probwui, rr, hh,
+        cut_in, rated, cut_out, Cp, availability, nwp, extra, depth,
+        distance_to_shore, a, directions):
     """Compute the total cost of a farm
 
     Args:
@@ -1462,8 +1460,8 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
     self_best_violation = []
     # hold constraint violations for best self layouts
     for i in range(swarm_size):
-        xlocs = [0.] * initial_num
-        ylocs = [0.] * initial_num
+        xlocs = [0. for i in range(initial_num)]
+        ylocs = [0. for i in range(initial_num)]
         for j in range(initial_num):
             interference = True  # step into while loop to place turbine
             ctr = 0
@@ -1471,18 +1469,21 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                 ctr += 1
                 xlocs[j] = random.uniform(0, farm_x)
                 ylocs[j] = random.uniform(0, farm_y)
-                interference = Check_Interference(xlocs, ylocs, j, turb_sep)
+                interference = Check_Interference([[i] for i in xlocs],
+                                                  [[i] for i in ylocs],
+                                                  j, turb_sep)
             if ctr == 5000:
-                return 'cannot find non-interfering turbine location'
+                raise ValueError('cannot find non-interfering '
+                                 + 'turbine location')
         current_x.append(xlocs)
         current_y.append(ylocs)
         self_bestx.append(xlocs)
         self_besty.append(ylocs)
-        newx = []
-        newy = []
         xlocation = []
         ylocation = []
         for index in range(len(xlocs)):
+            newx = []
+            newy = []
             for rads in directions:
                 newx.append(np.cos(rads) * xlocs[index]
                             - np.sin(rads) * ylocs[index])
@@ -1508,10 +1509,10 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
     best_eval = current_evals[best_index]
     last_vx = []
     last_vy = []
-    for j in (swarm_size):
+    for j in range(swarm_size):
         subx = []
         suby = []
-        for i in initial_num:
+        for i in range(initial_num):
             subx.append(random.random() * farm_x / 1000
                         * (-1 ** int(random.random() * 2)))
             suby.append(random.random() * farm_y / 1000
@@ -1525,7 +1526,7 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
             r1 = random.random()
             r2 = random.random()
             # shit_check = 0
-            constraint_error = 0
+            this_error = 0
             for j in range(initial_num):
                 # v0x = cuurent_x[i][j]
                 v_same_x = self_bestx[i][j] - current_x[i][j]
@@ -1542,13 +1543,13 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                 next_y = current_y[i][j] + new_vy
                 y_new.append(next_y)
                 if next_y > farm_y:
-                    constraint_error += abs(next_y - farm_y)
+                    this_error += abs(next_y - farm_y)
                 if next_y < 0.:
-                    constraint_error += abs(next_y)
+                    this_error += abs(next_y)
                 if next_x > farm_x:
-                    constraint_error += abs(next_x - farm_x)
+                    this_error += abs(next_x - farm_x)
                 if next_x < 0.:
-                    constraint_error += abs(next_x)
+                    this_error += abs(next_x)
 
             # print(x_new)
             # print(layout[i].XLocations) #not XLocation
@@ -1562,13 +1563,13 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                     space = np.sqrt(((x_new[j] - x_new[jj]) ** 2)
                                     + ((y_new[j] - y_new[jj]) ** 2))
                     if space < turb_sep:
-                        constraint_error += (turb_sep - space)
+                        this_error += (turb_sep - space)
 
-            newx = []
-            newy = []
             xlocation = []
             ylocation = []
             for index in range(len(xlocs)):
+                newx = []
+                newy = []
                 for rads in directions:
                     newx.append(np.cos(rads) * x_new[index]
                                 - np.sin(rads) * y_new[index])
@@ -1586,7 +1587,7 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                                                   distance_to_shore, a)
             evals += 1
             new_objective = (new_objective
-                             * (1 + constraint_error * constraint_scale))
+                             * (1 + this_error * constraint_scale))
             # print(layout[i].objective_eval)
             # print(new_objective)
             # print(layout[i].best_self)
@@ -1595,13 +1596,14 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                 self_bestx[i] = x_new
                 self_besty[i] = y_new
                 self_best_eval[i] = new_objective
-                self_best_violation[i] = constraint_error
+                self_best_violation[i] = this_error
                 # print('personal improvement')
         # AFTER everything's been changed for this generation
         # if new objective is better AND fits constraints, keep it
         for i in range(swarm_size):
-            if self_best_eval[i] < best_eval and constraint_error[i] < 1e-5:
+            if self_best_eval[i] < best_eval and self_best_violation[i] < 1e-5:
                 # only accept global best if no constraint violations
+                print('new best evaluation!')
                 best_eval = self_best_eval[i]
                 best_x = self_bestx[i]
                 best_y = self_besty[i]
@@ -1610,11 +1612,12 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                 # print('iteration no. = ', k)
         same_best += 1
         k += 1
-    newx = []
-    newy = []
+
     xlocation = []
     ylocation = []
     for index in range(len(xlocs)):
+        newx = []
+        newy = []
         for rads in directions:
             newx.append(np.cos(rads) * best_x[index]
                         - np.sin(rads) * best_y[index])
@@ -1632,8 +1635,10 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                                                             cut_in, rated,
                                                             cut_out, Cp,
                                                             availability, nwp,
-                                                            extra, depth, yrs,
+                                                            True, depth, yrs,
                                                             WCOE,
                                                             distance_to_shore,
                                                             a)
+    best_x = [[i] for i in best_x]
+    best_y = [[i] for i in best_y]
     return best_x, best_y, power, new_objective, evals, windspeeds, cost, k

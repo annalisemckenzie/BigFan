@@ -266,7 +266,7 @@ def calcicl(xlocs, ylocs):
 
 def onshore_cost(xlocs, ylocs, rr, hh, ro, Uref, Cp, depth, yrs,
                  WCOE, availability, distance_to_shore):
-    """Compute Cost of Farm using DuPont onshore cost surface derived from 
+    """Compute Cost of Farm using DuPont onshore cost surface derived from
         JEDI model
 
     Args:
