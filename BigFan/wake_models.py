@@ -10,39 +10,43 @@ Wake Models
 """
 
 try:
-#    from dolfin import near
-#    from dolfin import grad
-#    from dolfin import inner
-#    from dolfin import dx
-#    from dolfin import div
-#    from dolfin import Constant
-#    from dolfin import Expression
-#    from dolfin import Function
-#    from dolfin import project
-#    from dolfin import SubDomain
-#    from dolfin import RectangleMesh
-#    from dolfin import Point
-#    from dolfin import VectorElement
-#    from dolfin import FiniteElement
-#    from dolfin import FunctionSpace
-#    from dolfin import MixedElement
-#    from dolfin import VectorFunctionSpace
-#    from dolfin import CellFunction
-#    from dolfin import cells
-#    from dolfin import SpatialCoordinate
-#    from dolfin import refine
-#    from dolfin import DirichletBC
-#    from dolfin import TestFunctions
-#    from dolfin import NonlinearVariationalProblem
-#    from dolfin import derivative
-#    from dolfin import NonlinearVariationalSolver
-#    from dolfin import split
+    from dolfin import near
+    from dolfin import grad
+    from dolfin import inner
+    from dolfin import dx
+    from dolfin import div
+    from dolfin import Constant
+    from dolfin import Expression
+    from dolfin import Function
+    from dolfin import project
+    from dolfin import SubDomain
+    from dolfin import RectangleMesh
+    from dolfin import Point
+    from dolfin import VectorElement
+    from dolfin import FiniteElement
+    from dolfin import FunctionSpace
+    from dolfin import MixedElement
+    from dolfin import VectorFunctionSpace
+    from dolfin import CellFunction
+    from dolfin import cells
+    from dolfin import SpatialCoordinate
+    from dolfin import refine
+    from dolfin import DirichletBC
+    from dolfin import TestFunctions
+    from dolfin import NonlinearVariationalProblem
+    from dolfin import derivative
+    from dolfin import NonlinearVariationalSolver
+    from dolfin import split
+    from dolfin import integrate
+    import matplotlib.pyplot as plt
+    import random as rd
     nofenics = False
-except ModuleNotFoundError:
+except:
     print('warning: fenics is not installed or the fenicsproject nvironment '
           + 'is not activated. The CFD wake model is not available')
     nofenics = True
 import numpy as np
+print(nofenics)
 
 # NOTES TO ANNALISE:
 #     Change CFD inputs to get rid of axle spin
@@ -1018,7 +1022,6 @@ def Discretize_RSA(xloc, hh, rad, D2=False):
     return xcoords, zcoords
 
 
-'''
 def create_mesh(mx, my, mz, ma, rad2, site_x, site_y, numx, numy, numRefine,
                 print_mesh=False, adaptive_meshing=True):
     """Create farm mesh for use in CFD wind speed calculation
@@ -1166,7 +1169,8 @@ def createRotatedTurbineForce(mx, my, ma, A, beta, numturbs, alpha, V, mesh,
     if checkpts:
         check_it = project(tf, V)
         n = [check_it(np.cos(alpha)*mx[i] - np.sin(alpha)*my[i],
-                      np.sin(alpha)*mx[i] + np.cos(alpha)*my[i]) for i in range(numturbs)]
+                      np.sin(alpha)*mx[i] + np.cos(alpha)*my[i])
+             for i in range(numturbs)]
         nx = [(np.cos(alpha)*mx[i]
                - np.sin(alpha)*my[i]) for i in range(numturbs)]
         ny = [(np.sin(alpha)*mx[i]
@@ -1188,7 +1192,8 @@ def createRotatedTurbineForce(mx, my, ma, A, beta, numturbs, alpha, V, mesh,
     if checkpts:
         check_it = project(tf, V)
         n = [check_it(np.cos(alpha)*mx[i] - np.sin(alpha)*my[i],
-                      np.sin(alpha)*mx[i] + np.cos(alpha)*my[i]) for i in range(numturbs)]
+                      np.sin(alpha)*mx[i] + np.cos(alpha)*my[i])
+             for i in range(numturbs)]
         fig, ax = plt.subplots()
         ax.scatter(nx, ny)
         for i, txt in enumerate(n):
@@ -1303,7 +1308,7 @@ def main(tf, wind_case, VQ, radius, wind_cases, Lx, Ly, mlDenom):
 
 def rotatedPowerFunction(alpha, A, beta, mx, my, ma, up,
                          numturbs, V, mesh, air_density,
-                         Cp, checkpts, radius, heat=False):
+                         Cp, radius, cut_in, rated, cut_out, extra=False):
     """Determine power output by turbine
 
     Args:
@@ -1328,67 +1333,37 @@ def rotatedPowerFunction(alpha, A, beta, mx, my, ma, up,
         list of power output by turbine
     """
     J = []
-    if checkpts:
-        nx = [(np.cos(alpha)*mx[i]
-               - np.sin(alpha)*my[i]) for i in range(numturbs)]
-        ny = [(np.sin(alpha)*mx[i]
-               + np.cos(alpha)*my[i]) for i in range(numturbs)]
-        fig, ax = plt.subplots()
-        ax.scatter(nx, ny)
-        n = [up.sub(0)(nx[i], ny[i])[0] for i in range(numturbs)]
-        for i, txt in enumerate(n):
-            ax.annotate(txt, (nx[i], ny[i]))
-        plt.savefig('windspeeds.png', bbox_inches='tight')
-        plt.close()
+    if extra:
+        windsp = []
     for i in range(numturbs):
         # rotation
         xrot = np.cos(alpha) * mx[i] - np.sin(alpha) * my[i]
         # -5 added by Annalise 12/14 to understand effects of smoothing kernal
         yrot = np.sin(alpha)*mx[i] + np.cos(alpha)*my[i]
         # print(up.sub(0)(xrot, yrot)[0])
-        J.append(0.5 * air_density * np.pi * (radius ** 2) * Cp
-                 / ((1. - float(ma[i])) ** 3) * (up.sub(0)(xrot, yrot)[0]**3))
-        # up.sub(0)(xrot,yrot)[0] --> up == u and p combined
-        # --> sub(0) == just u
-        # --> (xrot, yrot) == position of interest (center pt)
-        # --> [0] == x-velocity
-    if heat:
-        heat_out = [[]]
-        outvals = 500
-        nx = [(np.cos(alpha)*mx[i]
-               - np.sin(alpha)*my[i]) for i in range(numturbs)]
-        ny = [(np.sin(alpha)*mx[i]
-               + np.cos(alpha)*my[i]) for i in range(numturbs)]
-        interval_x = (max(nx) - min(nx)) * 2. / outvals
-        if interval_x > 0.01:
-            x_start = min(nx) - (max(nx) - min(nx)) * 0.5 + interval_x / 2.
-            x1 = min(nx) - (max(nx) - min(nx)) * 0.5
-            x2 = max(nx) + (max(nx) - min(nx)) * 0.5
-        else:
-            x_start = min(nx) - 100. + 200. / (2. * outvals)
-            interval_x = 200. / outvals
-            x1 = min(nx) - 100.
-            x2 = max(nx) + 100.
-        interval_y = (max(ny) - min(ny)) * 2. / outvals
-        if interval_y > 0.01:
-            y_start = min(ny) - (max(ny) - min(ny)) * 0.5 + interval_y / 2.
-            y1 = min(ny) - (max(ny) - min(ny)) * 0.5
-            y2 = max(ny) + (max(ny) - min(ny)) * 0.5
-        else:
-            y_start = min(ny) - 100. + 200. / (2. * outvals)
-            interval_y = 200. / outvals
-            y1 = min(ny) - 100.
-            y2 = max(ny) + 100.
-        spacing_outx = [i * interval_x + x_start for i in range(outvals)]
-        sp_y = [i * interval_y + y_start for i in range(outvals)]
-        spacing_outy = [sp_y[-i] for i in range(1, len(sp_y) + 1)]
-        for j in spacing_outy:
-            heat_out[0].append([up.sub(0)(i, j)[0] for i in spacing_outx])
-        heat_out.append([x1, x2, y1, y2])
-        # print(heat_out)
-        return J, heat_out
+        if extra:
+            windsp.append(up.sub(0)(xrot, yrot)[0])
+        ws = up.sub(0)(xrot, yrot)[0]
+        if ws >= cut_in and ws < rated:
+            J.append(0.5 * air_density * A * Cp
+                     / ((1. - float(ma[i])) ** 3) * (ws ** 3))
+        elif ws < cut_in or ws >= cut_out:
+            J.append(0.)
+        elif ws >= rated and ws < cut_out:
+            J.append(0.5 * air_density * A * Cp
+                     / ((1. - float(ma[i])) ** 3) * (rated ** 3))
+    if extra:
+        return J, windsp
     else:
         return J
+
+
+def WTGdist(x, y):  # smoothing kernel
+    WTGexp = 8.  # gamma for smoothing kernel (Eq. 12)
+    thickness = 4.  # this used to be radius / 10, but I can't make that work
+    # in this context, so it's a constant now
+    # actuator disk distribution for normalization constant
+    return np.exp(-((x/thickness)**WTGexp + (y/40.)**WTGexp))
 
 
 def CFD_wake(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
@@ -1441,29 +1416,45 @@ def CFD_wake(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
             U0[ws] = U0[ws] * ((hh[0] / Zref) ** alphah)
     J = 0.
     cumulative_power = [0.] * len(xlocs)
-    for i in range(len(xlocs[0])):  # for each wind direction
+    numturbs = len(xlocs[0])
+    for i in range(numturbs):  # for each wind direction
         mx = [k[i] for k in xlocs]
         my = [k[i] for k in ylocs]
         ma = [aif] * len(mx)
+        beta = integrate.dblquad(WTGdist,
+                                 -3 * rr[0], 3 * rr[i],
+                                 lambda x: -3 * rr[i],
+                                 lambda x: 3 * rr[i])
+        A = np.pi * pow(rr[i], 2)
         for j in range(len(U0)):  # for each wind speed
             V, Q, VQ, mesh = create_mesh(mx, my, hh, ma, rad2)
             # print(wind_cases)
-            tf_rot = createRotatedTurbineForce(mx, my, ma, A, B, numturbs,
-                                               wind_cases[i][0], V, mesh)
+            tf_rot = createRotatedTurbineForce(mx, my, ma, A, beta, numturbs,
+                                               90., V, mesh)
             # calculate force imparted by turbines
             u_rot, up_rot = main(tf_rot, i, VQ)  # RANS solver
-            if heat and i == 0:
-                # only calc heat for wind from left
-                power_dev, heat_out = rotatedPowerFunction(wind_cases[i][0], A,
-                                                           beta, mx, my, ma,
-                                                           up_rot, numturbs, V,
-                                                           mesh, True)
+            if extra:
+                power_dev, windspeeds = rotatedPowerFunction(90., A, beta, mx,
+                                                             my, ma, up_rot,
+                                                             numturbs, V,
+                                                             mesh, ro, Cp,
+                                                             rr[i], cut_in,
+                                                             rated, cut_out,
+                                                             True)
             else:
-                power_dev = rotatedPowerFunction(wind_cases[i][0], A, beta, mx,
+                power_dev = rotatedPowerFunction(90., A, beta, mx,
                                                  my, ma, up_rot, numturbs, V,
-                                                 mesh)
-            J = J - (weights[i] * sum(power_dev))
-            cumulative_power = [(k * weights[i]
+                                                 mesh, ro, Cp, rr[i], cut_in,
+                                                 rated, cut_out)
+            J = J - (probwui[i][j] * sum(power_dev))
+            cumulative_power = [(k * probwui[i][j]
                                  + jj) for k, jj in zip(power_dev,
                                                         cumulative_power)]
-'''
+    if extra:
+        return cumulative_power, windspeeds
+    else:
+        return cumulative_power
+
+
+if __name__ == '__main__':
+    CFD_wake()
