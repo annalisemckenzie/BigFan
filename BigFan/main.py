@@ -9,7 +9,7 @@ Spring 2018
 Main File - accepts input values and sets up analysis
 """
 
-import csv
+# import csv
 import os
 import objectives as obj
 import cost_models as cm
@@ -17,7 +17,7 @@ import wake_models as wm
 import optimization_algorithms as oa
 import warnings
 import random
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from time import time
 import numpy as np
 
@@ -40,54 +40,59 @@ def read_inputs():
     possible_strings = ['on', 'off', 'eps', 'disceps', 'ga', 'pso', 'hardcode']
     list_values = ['XLocations', 'YLocations', 'rr', 'hh', 'directions',
                    'U0', 'probwui']
-    with open(dir_path) as infile:
-        info = csv.reader(infile, delimiter=',', quotechar='|')
-        next(infile)  # skip first line
-        for row in info:
-            variable = row[1]
-            while '' in row:
-                row.remove('')
-            if variable in list_values and len(row) > 2:
-                if variable in ['XLocations', 'YLocations']:
-                    value = [[float(i)] for i in row[2:]]
-                else:
-                    value = [float(i) for i in row[2:]]
-            else:
-                try:
-                    value = float(row[2])
-                except ValueError:
-                    # if the value is a string, deal with it appropriately
-                    if row[2].lower() == 'false':
-                        value = False
-                    elif row[2].lower() == 'true':
-                        value = True
-                    elif row[2].lower() in possible_strings:
-                        value = row[2].lower()
-                    elif row[2].lower() == 'cost':
-                        value = obj.cost
-                    elif row[2].lower() == 'profit':
-                        value = obj.profit
-                    elif row[2].lower() == 'cop':
-                        value = obj.COP
-                    elif row[2].lower() == 'lcoe':
-                        value = obj.LCOE
-                    elif row[2].lower() == 'aep':
-                        value = obj.AEP
-                    elif row[2].lower() == 'park_2d':
-                        value = wm.PARK_2D
-                    elif row[2].lower() == 'park_3d':
-                        value = wm.PARK_3D
-                    elif row[2].lower() == 'offshore_cost':
-                        value = cm.offshore_cost
-                    elif row[2].lower() == 'onshore_cost':
-                        value = cm.onshore_cost
-                except IndexError:
-                    if row[1] != 'shore':
-                        value = 'ErrorUseDefault'
+    with open(dir_path, 'r') as infile:
+        ctr = 0
+        for row in infile:
+            if ctr != 0:
+                row = row.strip().split(',')
+                variable = row[1]
+                while '' in row:
+                    row.remove('')
+                if variable in list_values and len(row) > 2:
+                    if variable in ['XLocations', 'YLocations']:
+                        value = [[float(i)] for i in row[2:]]
                     else:
-                        value = 'off'
-            all_variables.append(variable)
-            all_inputs.append(value)
+                        value = [float(i) for i in row[2:]]
+                else:
+                    try:
+                        value = float(row[2])
+                    except ValueError:
+                        # if the value is a string, deal with it appropriately
+                        if row[2].lower() == 'false':
+                            value = False
+                        elif row[2].lower() == 'true':
+                            value = True
+                        elif row[2].lower() in possible_strings:
+                            value = row[2].lower()
+                        elif row[2].lower() == 'cost':
+                            value = obj.cost
+                        elif row[2].lower() == 'profit':
+                            value = obj.profit
+                        elif row[2].lower() == 'cop':
+                            value = obj.COP
+                        elif row[2].lower() == 'lcoe':
+                            value = obj.LCOE
+                        elif row[2].lower() == 'aep':
+                            value = obj.AEP
+                        elif row[2].lower() == 'park_2d':
+                            value = wm.PARK_2D
+                        elif row[2].lower() == 'park_3d':
+                            value = wm.PARK_3D
+                        elif row[2].lower() == 'cfd_2d':
+                            value = wm.CFD_2D
+                        elif row[2].lower() == 'offshore_cost':
+                            value = cm.offshore_cost
+                        elif row[2].lower() == 'onshore_cost':
+                            value = cm.onshore_cost
+                    except IndexError:
+                        if row[1] != 'shore':
+                            value = 'ErrorUseDefault'
+                        else:
+                            value = 'off'
+                all_variables.append(variable)
+                all_inputs.append(value)
+            else:
+                ctr += 1
     type_index = all_variables.index('analysis_type')
     if all_inputs[type_index] == 'ErrorUseDefault':
         raise ValueError('no analysis type specified')
@@ -573,150 +578,150 @@ def set_up_hardcode(variables, values, xvals=0, yvals=0, hh=0,
     return output
 
 
-def plot_turbines(xlocs, ylocs, hh, rr):
-    """Plot turbine layout
-
-    Args:
-        xlocs: turbine x-locaations (list)
-        ylocs: turbine y-locaations (list)
-        hh: turbine hub heights (list)
-        rr: turbine rotor radii (list)
-    Returns:
-        objective requiested
-        power generated by each turbine
-        windspeeds at each turbine
-        cumulative layout cost
-    """
-    redcx = []
-    redcy = []
-    yellowcx = []
-    yellowcy = []
-    greencx = []
-    greency = []
-    bluecx = []
-    bluecy = []
-    redtrx = []
-    redtry = []
-    yellowtrx = []
-    yellowtry = []
-    greentrx = []
-    greentry = []
-    bluetrx = []
-    bluetry = []
-    redrhx = []
-    redrhy = []
-    yellowrhx = []
-    yellowrhy = []
-    greenrhx = []
-    greenrhy = []
-    bluerhx = []
-    bluerhy = []
-    redsqx = []
-    redsqy = []
-    yellowsqx = []
-    yellowsqy = []
-    greensqx = []
-    greensqy = []
-    bluesqx = []
-    bluesqy = []
-    noplotx = []
-    noploty = []
-
-    for i in range(len(xlocs)):
-        if hh[i] <= 60 and rr[i] <= 30:
-            redcx.append(xlocs[i][0])
-            redcy.append(ylocs[i][0])
-
-        elif hh[i] <= 60 and rr[i] <= 40:
-            yellowcx.append(xlocs[i][0])
-            yellowcy.append(ylocs[i][0])
-
-        elif hh[i] <= 60 and rr[i] <= 60:
-            greencx.append(xlocs[i][0])
-            greency.append(ylocs[i][0])
-
-        elif hh[i] <= 60 and rr[i] > 60:
-            bluecx.append(xlocs[i][0])
-            bluecy.append(ylocs[i][0])
-
-        elif hh[i] <= 80 and rr[i] <= 30:
-            redtrx.append(xlocs[i][0])
-            redtry.append(ylocs[i][0])
-
-        elif hh[i] <= 80 and rr[i] <= 40:
-            yellowtrx.append(xlocs[i][0])
-            yellowtry.append(ylocs[i][0])
-
-        elif hh[i] <= 80 and rr[i] <= 60:
-            greentrx.append(xlocs[i][0])
-            greentry.append(ylocs[i][0])
-
-        elif hh[i] <= 80 and rr[i] > 60:
-            bluetrx.append(xlocs[i][0])
-            bluetry.append(ylocs[i][0])
-
-        elif hh[i] <= 120 and rr[i] <= 30:
-            redrhx.append(xlocs[i][0])
-            redrhy.append(ylocs[i][0])
-
-        elif hh[i] <= 120 and rr[i] <= 40:
-            yellowrhx.append(xlocs[i][0])
-            yellowrhy.append(ylocs[i][0])
-
-        elif hh[i] <= 120 and rr[i] <= 60:
-            greenrhx.append(xlocs[i][0])
-            greenrhy.append(ylocs[i][0])
-
-        elif hh[i] <= 120 and rr[i] > 60:
-            bluerhx.append(xlocs[i][0])
-            bluerhy.append(ylocs[i][0])
-
-        elif hh[i] > 120 and rr[i] <= 30:
-            redsqx.append(xlocs[i][0])
-            redsqy.append(ylocs[i][0])
-
-        elif hh[i] > 120 and rr[i] <= 40:
-            yellowsqx.append(xlocs[i][0])
-            yellowsqy.append(ylocs[i][0])
-
-        elif hh[i] > 120 and rr[i] <= 60:
-            greensqx.append(xlocs[i][0])
-            greensqy.append(ylocs[i][0])
-
-        elif hh[i] > 120 and rr[i] > 60:
-            bluesqx.append(xlocs[i][0])
-            bluesqy.append(ylocs[i][0])
-
-        else:
-            noplotx.append(xlocs[i][0])
-            noploty.append(ylocs[i][0])
-
-    fig = plt.figure()
-    ax1 = fig.add_subplot(111)
-    ax1.scatter(redcx, redcy, s=10, c='r', marker="o")
-    ax1.scatter(yellowcx, yellowcy, s=10, c='y', marker="o")
-    ax1.scatter(greencx, greency, s=10, c='g', marker="o")
-    ax1.scatter(bluecy, bluecy, s=10, c='b', marker="o")
-    ax1.scatter(redtrx, redtry, s=10, c='r', marker="^")
-    ax1.scatter(yellowtrx, yellowtry, s=10, c='y', marker="^")
-    ax1.scatter(greentrx, greentry, s=10, c='g', marker="^")
-    ax1.scatter(bluetrx, bluetry, s=10, c='b', marker="^")
-    ax1.scatter(redrhx, redrhy, s=10, c='r', marker="d")
-    ax1.scatter(yellowrhx, yellowrhy, s=10, c='y', marker="d")
-    ax1.scatter(greenrhx, greenrhy, s=10, c='g', marker="d")
-    ax1.scatter(bluerhy, bluerhy, s=10, c='b', marker="d")
-    ax1.scatter(redsqx, redsqy, s=10, c='r', marker="s")
-    ax1.scatter(yellowsqx, yellowsqy, s=10, c='y', marker="s")
-    ax1.scatter(greensqx, greensqy, s=10, c='g', marker="s")
-    ax1.scatter(bluesqx, bluesqy, s=10, c='b', marker="s")
-
-    for i in range(len(xlocs)):
-        ax1.annotate(i, (xlocs[i][0], ylocs[i][0]))
-    plt.ylabel('Position (m)')
-    plt.xlabel('Position (m)')
-    plt.title(str('Optimization of ' + str(len(xlocs)) + ' Turbines'))
-    plt.show()
-    plt.savefig('output_layout.png')
+#def plot_turbines(xlocs, ylocs, hh, rr):
+#    """Plot turbine layout
+#
+#    Args:
+#        xlocs: turbine x-locaations (list)
+#        ylocs: turbine y-locaations (list)
+#        hh: turbine hub heights (list)
+#        rr: turbine rotor radii (list)
+#    Returns:
+#        objective requiested
+#        power generated by each turbine
+#        windspeeds at each turbine
+#        cumulative layout cost
+#    """
+#    redcx = []
+#    redcy = []
+#    yellowcx = []
+#    yellowcy = []
+#    greencx = []
+#    greency = []
+#    bluecx = []
+#    bluecy = []
+#    redtrx = []
+#    redtry = []
+#    yellowtrx = []
+#    yellowtry = []
+#    greentrx = []
+#    greentry = []
+#    bluetrx = []
+#    bluetry = []
+#    redrhx = []
+#    redrhy = []
+#    yellowrhx = []
+#    yellowrhy = []
+#    greenrhx = []
+#    greenrhy = []
+#    bluerhx = []
+#    bluerhy = []
+#    redsqx = []
+#    redsqy = []
+#    yellowsqx = []
+#    yellowsqy = []
+#    greensqx = []
+#    greensqy = []
+#    bluesqx = []
+#    bluesqy = []
+#    noplotx = []
+#    noploty = []
+#
+#    for i in range(len(xlocs)):
+#        if hh[i] <= 60 and rr[i] <= 30:
+#            redcx.append(xlocs[i][0])
+#            redcy.append(ylocs[i][0])
+#
+#        elif hh[i] <= 60 and rr[i] <= 40:
+#            yellowcx.append(xlocs[i][0])
+#            yellowcy.append(ylocs[i][0])
+#
+#        elif hh[i] <= 60 and rr[i] <= 60:
+#            greencx.append(xlocs[i][0])
+#            greency.append(ylocs[i][0])
+#
+#        elif hh[i] <= 60 and rr[i] > 60:
+#            bluecx.append(xlocs[i][0])
+#            bluecy.append(ylocs[i][0])
+#
+#        elif hh[i] <= 80 and rr[i] <= 30:
+#            redtrx.append(xlocs[i][0])
+#            redtry.append(ylocs[i][0])
+#
+#        elif hh[i] <= 80 and rr[i] <= 40:
+#            yellowtrx.append(xlocs[i][0])
+#            yellowtry.append(ylocs[i][0])
+#
+#        elif hh[i] <= 80 and rr[i] <= 60:
+#            greentrx.append(xlocs[i][0])
+#            greentry.append(ylocs[i][0])
+#
+#        elif hh[i] <= 80 and rr[i] > 60:
+#            bluetrx.append(xlocs[i][0])
+#            bluetry.append(ylocs[i][0])
+#
+#        elif hh[i] <= 120 and rr[i] <= 30:
+#            redrhx.append(xlocs[i][0])
+#            redrhy.append(ylocs[i][0])
+#
+#        elif hh[i] <= 120 and rr[i] <= 40:
+#            yellowrhx.append(xlocs[i][0])
+#            yellowrhy.append(ylocs[i][0])
+#
+#        elif hh[i] <= 120 and rr[i] <= 60:
+#            greenrhx.append(xlocs[i][0])
+#            greenrhy.append(ylocs[i][0])
+#
+#        elif hh[i] <= 120 and rr[i] > 60:
+#            bluerhx.append(xlocs[i][0])
+#            bluerhy.append(ylocs[i][0])
+#
+#        elif hh[i] > 120 and rr[i] <= 30:
+#            redsqx.append(xlocs[i][0])
+#            redsqy.append(ylocs[i][0])
+#
+#        elif hh[i] > 120 and rr[i] <= 40:
+#            yellowsqx.append(xlocs[i][0])
+#            yellowsqy.append(ylocs[i][0])
+#
+#        elif hh[i] > 120 and rr[i] <= 60:
+#            greensqx.append(xlocs[i][0])
+#            greensqy.append(ylocs[i][0])
+#
+#        elif hh[i] > 120 and rr[i] > 60:
+#            bluesqx.append(xlocs[i][0])
+#            bluesqy.append(ylocs[i][0])
+#
+#        else:
+#            noplotx.append(xlocs[i][0])
+#            noploty.append(ylocs[i][0])
+#
+#    fig = plt.figure()
+#    ax1 = fig.add_subplot(111)
+#    ax1.scatter(redcx, redcy, s=10, c='r', marker="o")
+#    ax1.scatter(yellowcx, yellowcy, s=10, c='y', marker="o")
+#    ax1.scatter(greencx, greency, s=10, c='g', marker="o")
+#    ax1.scatter(bluecy, bluecy, s=10, c='b', marker="o")
+#    ax1.scatter(redtrx, redtry, s=10, c='r', marker="^")
+#    ax1.scatter(yellowtrx, yellowtry, s=10, c='y', marker="^")
+#    ax1.scatter(greentrx, greentry, s=10, c='g', marker="^")
+#    ax1.scatter(bluetrx, bluetry, s=10, c='b', marker="^")
+#    ax1.scatter(redrhx, redrhy, s=10, c='r', marker="d")
+#    ax1.scatter(yellowrhx, yellowrhy, s=10, c='y', marker="d")
+#    ax1.scatter(greenrhx, greenrhy, s=10, c='g', marker="d")
+#    ax1.scatter(bluerhy, bluerhy, s=10, c='b', marker="d")
+#    ax1.scatter(redsqx, redsqy, s=10, c='r', marker="s")
+#    ax1.scatter(yellowsqx, yellowsqy, s=10, c='y', marker="s")
+#    ax1.scatter(greensqx, greensqy, s=10, c='g', marker="s")
+#    ax1.scatter(bluesqx, bluesqy, s=10, c='b', marker="s")
+#
+#    for i in range(len(xlocs)):
+#        ax1.annotate(i, (xlocs[i][0], ylocs[i][0]))
+#    plt.ylabel('Position (m)')
+#    plt.xlabel('Position (m)')
+#    plt.title(str('Optimization of ' + str(len(xlocs)) + ' Turbines'))
+#    plt.show()
+#    plt.savefig('output_layout.png')
 
 
 def create_output_file(variables, values, objective_output,
@@ -798,7 +803,7 @@ if __name__ == "__main__":
                              values[variables.index('rr')], True)
     if analysis == 'hardcode':
         output = output + ['blank', 'blank', 1, (time() - start_time) / 60.]
-    plot_turbines(output[0], output[1],
-                  values[variables.index('hh')],
-                  values[variables.index('rr')])
+#    plot_turbines(output[0], output[1],
+#                  values[variables.index('hh')],
+#                  values[variables.index('rr')])
     create_output_file(variables, values, outobj, output)

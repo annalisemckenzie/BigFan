@@ -11,7 +11,7 @@ Algorithm Options
 
 import numpy as np
 import random
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 def Check_Interference(xlocation, ylocation, index, turbine_sep_distance):
@@ -231,8 +231,8 @@ def EPS(xlocation, ylocation, init_step, minstep,
         optimized objctive
         Number of objective evaluations until convergence
     """
-    plt.figure()
-    plt.scatter([i[0] for i in xlocation], [i[0] for i in ylocation])
+    # plt.figure()
+    # plt.scatter([i[0] for i in xlocation], [i[0] for i in ylocation])
     initial_num = len(xlocation)
     stopped = [0] * initial_num
     # Clear_Vectors()
@@ -665,10 +665,10 @@ def EPS(xlocation, ylocation, init_step, minstep,
             exit_css = sum(stopped)
             print(exit_css)
             if exit_css == initial_num:
-                plt.figure()
-                plt.scatter(xlocation, ylocation)
-                for i in range(len(xlocation)):
-                    plt.annotate(i, (xlocation[i][0], ylocation[i][0]))
+                # plt.figure()
+                # plt.scatter(xlocation, ylocation)
+                # for i in range(len(xlocation)):
+                #     plt.annotate(i, (xlocation[i][0], ylocation[i][0]))
                 # all turbines have stopped moving at this step size
                 # find worst performing turbine and randomly assign elsewhere
                 for b in range(0, num_pops):

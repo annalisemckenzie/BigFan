@@ -37,16 +37,15 @@ try:
     from dolfin import derivative
     from dolfin import NonlinearVariationalSolver
     from dolfin import split
-    from dolfin import integrate
+    from scipy import integrate
     import matplotlib.pyplot as plt
     import random as rd
     nofenics = False
 except:
-    print('warning: fenics is not installed or the fenicsproject nvironment '
+    print('warning: fenics is not installed or the fenicsproject environment '
           + 'is not activated. The CFD wake model is not available')
     nofenics = True
 import numpy as np
-print(nofenics)
 
 # NOTES TO ANNALISE:
 #     Change CFD inputs to get rid of axle spin
@@ -1366,9 +1365,9 @@ def WTGdist(x, y):  # smoothing kernel
     return np.exp(-((x/thickness)**WTGexp + (y/40.)**WTGexp))
 
 
-def CFD_wake(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-             ro, aif, farm_y, cut_in, rated, cut_out, Cp,
-             availability, rad2, nwp=False, extra=False, adaptive_mesh=True):
+def CFD_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
+           ro, aif, farm_y, cut_in, rated, cut_out, Cp,
+           availability, rad2, nwp=False, extra=False):
     """Compute the turbine power generation (and optionally turbine wind speed)
         using WindSE2D CFD wake model
 
@@ -1407,6 +1406,7 @@ def CFD_wake(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         raise ModuleNotFoundError('The fenicsproject environment is not '
                                   + 'available. Ensure project is installed '
                                   + 'and environemt is activated')
+    adaptive_meshing = True
     if len(set(hh)) != 1:
         raise ValueError('More than one hub height specified for '
                          + '2D simulation')
