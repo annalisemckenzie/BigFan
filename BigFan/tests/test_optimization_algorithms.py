@@ -254,7 +254,8 @@ def test_disc_EPS():
                             max_pop_tries, aif, farm_x, farm_y, turb_sep,
                             Eval_Objective, Compute_Wake, Compute_Cost,
                             probwui, rr, hh, cut_in, rated, cut_out, Cp,
-                            availability, nwp, extra, depth, distance_to_shore,
+                            availability, Ct, rad2, numx, numy, Lx, Ly,
+                            mlDenom, nwp, extra, depth, distance_to_shore,
                             a, directions, mesh_width)
     sorted_x = sorted([i[0] for i in output[0]])
     sorted_y = sorted([i[0] for i in output[1]])
