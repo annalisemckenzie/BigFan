@@ -43,11 +43,19 @@ def test_cost_offshore():
     nwp = False
     power = [[0., 769.6902001294994] for i in range(5)]
     c = (22578013.001942493 + 20478074.51458269)
-    assert obj.cost(Compute_Wake, Compute_Cost,
-                    xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                    aif, farm_y, cut_in, rated, cut_out, Cp, availability, nwp,
-                    extra, depth, yrs, WCOE, distance_to_shore, a) == (c,
-                                                                       power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.cost(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                    probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                    rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                    Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                    distance_to_shore, a) == (c, power)
 
 
 def tets_cost_onshore():
@@ -79,11 +87,19 @@ def tets_cost_onshore():
     nwp = False
     power = [[0., 769.6902001294994] for i in range(5)]
     c = (46671600.0 + 471974030.7194091)
-    assert obj.cost(Compute_Wake, Compute_Cost,
-                    xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                    aif, farm_y, cut_in, rated, cut_out, Cp, availability, nwp,
-                    extra, depth, yrs, WCOE, distance_to_shore, a) == (c,
-                                                                       power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.cost(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                    probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                    rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                    Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                    distance_to_shore, a) == (c, power)
 
 
 # Test Profit
@@ -120,11 +136,19 @@ def test_profit_offshore():
         tot_power += sum(i)
     c = (-(tot_power * yrs * 8760 * WCOE)
          + (22578013.001942493 + 20478074.51458269))
-    assert obj.profit(Compute_Wake, Compute_Cost,
-                      xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                      aif, farm_y, cut_in, rated, cut_out, Cp, availability,
-                      nwp, extra, depth, yrs, WCOE, distance_to_shore,
-                      a) == (c, power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.profit(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                      probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                      rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                      Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                      distance_to_shore, a) == (c, power)
 
 
 def test_profit_onshore():
@@ -160,11 +184,19 @@ def test_profit_onshore():
         tot_power += sum(i)
     c = (-tot_power * yrs * 8760 * WCOE
          + (46671600.0 + 9439480.614388183))
-    assert obj.profit(Compute_Wake, Compute_Cost,
-                      xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                      aif, farm_y, cut_in, rated, cut_out, Cp, availability,
-                      nwp, extra, depth, yrs, WCOE, distance_to_shore,
-                      a) == (c, power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.profit(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                      probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                      rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                      Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                      distance_to_shore, a) == (c, power)
 
 
 # Test COP
@@ -200,10 +232,19 @@ def test_COP_offshore():
     for i in power:
         tot_power += sum(i)
     c = (22578013.001942493 + 20478074.51458269) / tot_power
-    assert obj.COP(Compute_Wake, Compute_Cost,
-                   xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                   aif, farm_y, cut_in, rated, cut_out, Cp, availability, nwp,
-                   extra, depth, yrs, WCOE, distance_to_shore, a) == (c, power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.COP(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                   probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                   rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                   Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                   distance_to_shore, a) == (c, power)
 
 
 def test_COP_onshore():
@@ -238,11 +279,19 @@ def test_COP_onshore():
     for i in power:
         tot_power += sum(i)
     c = (46671600.0 + 9439480.614388183) / tot_power
-    assert obj.COP(Compute_Wake, Compute_Cost,
-                   xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                   aif, farm_y, cut_in, rated, cut_out, Cp, availability,
-                   nwp, extra, depth, yrs, WCOE, distance_to_shore,
-                   a) == (c, power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.COP(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                   probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                   rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                   Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                   distance_to_shore, a) == (c, power)
 
 
 # Test LCOE
@@ -280,11 +329,19 @@ def test_LCOE_offshore():
         tot_energy += sum(i) * 8760
     c = (22578013.001942493 / (a * tot_energy)
          + 20478074.51458269 / (tot_energy * yrs))
-    assert obj.LCOE(Compute_Wake, Compute_Cost,
-                    xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                    aif, farm_y, cut_in, rated, cut_out, Cp, availability, nwp,
-                    extra, depth, yrs, WCOE, distance_to_shore, a) == (c,
-                                                                       power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.LCOE(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                    probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                    rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                    Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                    distance_to_shore, a) == (c, power)
 
 
 def test_LCOE_onshore():
@@ -319,11 +376,19 @@ def test_LCOE_onshore():
     for i in power:
         tot_e += sum(i) * 8760.
     c = 46671600.0 / (tot_e * a) + 9439480.614388183 / (yrs * tot_e)
-    assert obj.LCOE(Compute_Wake, Compute_Cost,
-                    xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                    aif, farm_y, cut_in, rated, cut_out, Cp, availability,
-                    nwp, extra, depth, yrs, WCOE, distance_to_shore,
-                    a) == (c, power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.LCOE(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                    probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                    rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                    Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                    distance_to_shore, a) == (c, power)
 
 
 # Test AEP
@@ -359,11 +424,19 @@ def test_AEP_offshore():
     tot_e = 0.
     for i in power:
         tot_e += sum(i) * 8760
-    assert obj.AEP(Compute_Wake, Compute_Cost,
-                   xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                   aif, farm_y, cut_in, rated, cut_out, Cp, availability, nwp,
-                   extra, depth, yrs, WCOE, distance_to_shore, a) == (-tot_e,
-                                                                      power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.AEP(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                   probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                   rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                   Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                   distance_to_shore, a) == (-tot_e, power)
 
 
 def test_AEP_onshore():
@@ -398,11 +471,19 @@ def test_AEP_onshore():
     for i in power:
         tot_e += sum(i) * 8760.
     # c = (46671600.0 + 9439480.614388183))
-    assert obj.AEP(Compute_Wake, Compute_Cost,
-                   xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro,
-                   aif, farm_y, cut_in, rated, cut_out, Cp, availability,
-                   nwp, extra, depth, yrs, WCOE, distance_to_shore,
-                   a) == (-tot_e, power)
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
+    assert obj.AEP(Compute_Wake, Compute_Cost, xlocs, ylocs, rr, hh, z0, U0,
+                   probwui, Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                   rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+                   Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+                   distance_to_shore, a) == (-tot_e, power)
 
 
 if __name__ == '__main__':

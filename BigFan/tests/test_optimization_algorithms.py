@@ -206,12 +206,21 @@ def test_disc_EPS():
     distance_to_shore = 32.
     a = 17.19
     mesh_width = 200.
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
     output = op_al.EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0,
                             Zref, alphah, ro, yrs, WCOE, num_pops,
                             max_pop_tries, aif, farm_x, farm_y, turb_sep,
                             Eval_Objective, Compute_Wake, Compute_Cost,
                             probwui, rr, hh, cut_in, rated, cut_out, Cp,
-                            availability, nwp, extra, depth, distance_to_shore,
+                            availability, Ct, rad2, numx, numy, Lx, Ly,
+                            mlDenom, nwp, extra, depth, distance_to_shore,
                             a, directions, mesh_width)
     sorted_x = sorted([i[0] for i in output[0]])
     sorted_y = sorted([i[0] for i in output[1]])
@@ -333,13 +342,21 @@ def test_GA():
     population_size = 20
     generations_to_converge = 20
     initial_num = 8
+    farm_x = 2000.
+    Ct = 8. / 9.
+    rad2 = 200.
+    mlDenom = 2.
+    numx = 100
+    numy = 100
+    Lx = 100.
+    Ly = 100.
     output = op_al.GA(mesh_size, elite, mateable_range, mutation_rate,
                       z0, U0, Zref, alphah, ro, yrs, WCOE, initial_num,
-                      population_size, generations_to_converge, aif, farm_x,
-                      farm_y, turb_sep, Eval_Objective, Compute_Wake,
-                      Compute_Cost, probwui, rr, hh, cut_in, rated, cut_out,
-                      Cp, availability, nwp, extra, depth, distance_to_shore,
-                      a, directions)
+                      population_size, generations_to_converge, aif, farm_x, 
+                     farm_y, turb_sep, Eval_Objective, Compute_Wake,
+                     Compute_Cost, probwui, rr, hh, cut_in, rated, cut_out,
+                     Cp, availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+                     nwp, extra, depth, distance_to_shore, a, directions)
     sorted_x = sorted([i[0] for i in output[0]])
     sorted_y = sorted([i[0] for i in output[1]])
     assert np.allclose(sorted_x, [0., 0., 0.,
