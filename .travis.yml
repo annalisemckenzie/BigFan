@@ -28,6 +28,6 @@ install:
     - conda install matplotlib
     - conda config --append channels conda-forge
     - conda install --yes fenics=2017.2
-    - source activate fenicsproject;
+    #- source activate fenicsproject;
 script:
     - pytest -vv --cov=./;
