@@ -10,6 +10,7 @@ ME 599 Project - Spring 2018
 
 import pytest
 from .. import wake_models as wm
+import numpy as np
 
 
 def test_Jensen_3D():
@@ -53,10 +54,11 @@ def test_Jensen_3D():
     probwui = [[0.5, 0.5]]
     power = [[0., 769.6902001294994], [0., 707.17227660650678],
              [0., 769.6902001294994]]
-    assert wm.PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-                      ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
-                      availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                      nwp=False, extra=False) == power
+    assert np.allclose(wm.PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref,
+                                  alphah, ro, aif, farm_y, farm_x, cut_in,
+                                  rated, cut_out, Cp, availability, Ct, rad2,
+                                  numx, numy, Lx, Ly, mlDenom, nwp=False,
+                                  extra=False), power, atol=1e-2)
 
     # Test 3 nested with nwp and windspeed output
     xlocs = [[0., 0.], [0., 0.], [0., 0.]]
@@ -71,10 +73,12 @@ def test_Jensen_3D():
     power = [[0.0, 384.8451000647497, 0.0, 0.0],
              [0.0, 23.563571268469847, 0.0, 23.563571268469847],
              [0.0, 0.0, 0.0, 384.8451000647497]]
-    assert wm.PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-                      ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
-                      availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                      nwp=False, extra=False) == (power, windspeeds)
+    output = wm.PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref,
+                        alphah, ro, aif, farm_y, farm_x, cut_in,
+                        rated, cut_out, Cp, availability, Ct, rad2,
+                        numx, numy, Lx, Ly, mlDenom, nwp=False, extra=False)
+    assert np.allclose(output[0], power, atol=1e-2)
+    assert np.allclose(output[1], windspeeds, atol=1e-2)
     windspeeds = [[[0., 10.], [0., 3.9414109332807392],
                    [0., 2.3048471463211131]],
                   [[0., 2.3048471463211131], [0., 3.9414109332807392],
@@ -83,10 +87,12 @@ def test_Jensen_3D():
              [0.0, 23.563571268469847, 0.0, 23.563571268469847],
              [0.0, 0.0, 0.0, 384.8451000647497]]
     # Test 3 nested without nwp
-    assert wm.PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-                      ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
-                      availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                      nwp=False, extra=False) == (power, windspeeds)
+    output = wm.PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
+                        ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
+                        availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+                        nwp=False, extra=False)
+    assert np.allclose(output[0], power, atol=1e-2)
+    assert np.allclose(output[1], windspeeds, atol=1e-2)
 
 
 def test_Jensen_2D():
@@ -117,10 +123,11 @@ def test_Jensen_2D():
     numy = 100
     Lx = 100.
     Ly = 100.
-    assert wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-                      ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
-                      availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                      nwp=False, extra=False) == power
+    output = wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
+                        ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
+                        availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+                        nwp=False, extra=False)
+    assert np.allclose(output, power, atol=1e-2)
 
     # Test 3 in triangle, no overlap
     xlocs = [[0.], [80.], [160.]]
@@ -130,10 +137,11 @@ def test_Jensen_2D():
     probwui = [[0.5, 0.5]]
     power = [[0., 769.6902001294994], [0., 581.03931130427259],
              [0., 769.6902001294994]]
-    assert wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-                      ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
-                      availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                      nwp=False, extra=False) == power
+    output = wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
+                        ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
+                        availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+                        nwp=False, extra=False)
+    assert np.allcose(output, power, atol=1e-2)
 
     # Test with nwp
     xlocs = [[0., 0.], [0., 0.], [0., 0.]]
@@ -156,10 +164,12 @@ def test_Jensen_2D():
     numy = 100
     Lx = 100.
     Ly = 100.
-    assert wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-                      ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
-                      availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                      nwp=False, extra=False) == (power, windspeeds)
+    output = wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
+                        ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
+                        availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+                        nwp=False, extra=False)
+    assert np.allclose(output[0], power, atol=1e-2)
+    assert np.allclose(output[1], windspeeds, atol=1e-2)
     windspeeds = [[[0., 10.], [0., 3.9414109332807392],
                    [0., 2.303332134437631]],
                   [[0., 2.303332134437631], [0., 3.9414109332807392],
@@ -168,10 +178,12 @@ def test_Jensen_2D():
              [0.0, 23.563571268469847, 0.0, 23.563571268469847],
              [0.0, 0.0, 0.0, 384.8451000647497]]
     # Test 3 nested without nwp
-    assert wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-                      ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
-                      availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                      nwp=False, extra=False) == (power, windspeeds)
+    output = wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
+                        ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
+                        availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+                        nwp=False, extra=False)
+    assert np.allclose(output[0], power, atol=1e-2)
+    assert np.allclose(output[1], windspeeds, atol=1e-2)
 
 
 def test_Discretize_RSA():
