@@ -42,6 +42,7 @@ try:
     from dolfin import parameters
     from scipy import integrate
     import matplotlib.pyplot as plt
+    plt.switch_backend('agg')
     import random as rd
     import sys
     sys.getrecursionlimit()
@@ -61,7 +62,6 @@ except:
           + 'is not activated. The CFD wake model is not available')
     nofenics = True
 import numpy as np
-plt.switch_backend('agg')
 
 
 def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
