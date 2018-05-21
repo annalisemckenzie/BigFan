@@ -1,14 +1,14 @@
 language: python
 python:
 - "3.6"
-- conda install --yes fenics=2017.1.dev
-sudo: false
+#- conda install --yes fenics=2017.1.dev
+#sudo: false
 
-#before_install:
+before_install:
   # Install FEniCS (but don't do an 'apt-get upgrade' as this will timeout the process)
- # - sudo add-apt-repository ppa:fenics-packages/fenics -y
- # - sudo apt-get update -q
- # - sudo apt-get install fenics -y
+  - sudo add-apt-repository ppa:fenics-packages/fenics -y
+  - sudo apt-get update -q
+  - sudo apt-get install fenics -y
 
 install:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -27,7 +27,7 @@ install:
     - conda install pytest-cov
     - conda install matplotlib
     - conda config --append channels conda-forge
-    - conda install --yes fenics=2017.2
+    #- conda install --yes fenics=2017.2
     #- source activate fenicsproject;
 script:
     - pytest -vv --cov=./;
