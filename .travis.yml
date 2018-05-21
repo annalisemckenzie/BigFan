@@ -20,8 +20,13 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     - conda update -q --all
+    - conda install numpy>=1.12.0
+    - conda install pytest>=3.2.0
+    - conda install pytest-cov
+    - conda install pint>=0.7.2
+    - conda install matplotlib
     - conda config --append channels conda-forge
     - conda env create -qf test-environment.yaml;
-    - source activate test-environment;
+    - source activate fenicsproject;
 script:
     - pytest -vv --cov=./;
