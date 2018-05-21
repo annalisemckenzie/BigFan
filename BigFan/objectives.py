@@ -12,8 +12,9 @@ Objective Evaluation Options
 
 def cost(Compute_Wake, Compute_Cost,
          xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
-         farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
-         depth, yrs, WCOE, distance_to_shore, a):
+         farm_y, farm_x, cut_in, rated, cut_out, Cp, availability, Ct, rad2,
+         numx, numy, Lx, Ly, mlDenom,
+         nwp, extra, depth, yrs, WCOE, distance_to_shore, a):
     """Compute the total cost of a farm
 
     Args:
@@ -36,6 +37,13 @@ def cost(Compute_Wake, Compute_Cost,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: radius around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -57,22 +65,25 @@ def cost(Compute_Wake, Compute_Cost,
                                 distance_to_shore)
     if extra:
         power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                                         Zref, alphah, ro, aif, farm_y, cut_in,
-                                         rated, cut_out, Cp, availability,
+                                         Zref, alphah, ro, aif, farm_y, farm_x,
+                                         cut_in,
+                                         rated, cut_out, Cp, availability, Ct,
+                                         rad2, numx, numy, Lx, Ly, mlDenom,
                                          nwp, extra)
         return (costc + costa), power, windspeeds, (costc + costa)
     else:
         power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                             Zref, alphah, ro, aif, farm_y, cut_in,
-                             rated, cut_out, Cp, availability,
-                             nwp, extra)
+                             Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                             rated, cut_out, Cp, availability, Ct,
+                             rad2, numx, numy, Lx, Ly, mlDenom, nwp, extra)
         return (costc + costa), power
 
 
 def profit(Compute_Wake, Compute_Cost,
            xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
-           farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
-           depth, yrs, WCOE, distance_to_shore, a):
+           farm_y, farm_x, cut_in, rated, cut_out, Cp, availability, Ct, rad2,
+           numx, numy, Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+           distance_to_shore, a):
     """Compute the lifetime profit of a farm
 
     Args:
@@ -95,6 +106,13 @@ def profit(Compute_Wake, Compute_Cost,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: radius around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -116,8 +134,10 @@ def profit(Compute_Wake, Compute_Cost,
                                 distance_to_shore)
     if extra:
         power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                                         Zref, alphah, ro, aif, farm_y, cut_in,
-                                         rated, cut_out, Cp, availability,
+                                         Zref, alphah, ro, aif, farm_y, farm_x,
+                                         cut_in,
+                                         rated, cut_out, Cp, availability, Ct,
+                                         rad2, numx, numy, Lx, Ly, mlDenom,
                                          nwp, extra)
         tot_power = 0.
         for i in power:
@@ -126,9 +146,9 @@ def profit(Compute_Wake, Compute_Cost,
         return profit, power, windspeeds, (costc + costa)
     else:
         power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                             Zref, alphah, ro, aif, farm_y, cut_in,
-                             rated, cut_out, Cp, availability,
-                             nwp, extra)
+                             Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                             rated, cut_out, Cp, availability, Ct,
+                             rad2, numx, numy, Lx, Ly, mlDenom, nwp, extra)
         tot_power = 0.
         for i in power:
             tot_power += sum(i)
@@ -138,8 +158,9 @@ def profit(Compute_Wake, Compute_Cost,
 
 def COP(Compute_Wake, Compute_Cost,
         xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
-        farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
-        depth, yrs, WCOE, distance_to_shore, a):
+        farm_y, farm_x, cut_in, rated, cut_out, Cp, availability, Ct, rad2,
+        numx, numy, Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+        distance_to_shore, a):
     """Compute the cost per killowatt of a farm
 
     Args:
@@ -162,6 +183,13 @@ def COP(Compute_Wake, Compute_Cost,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: radius around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -183,8 +211,10 @@ def COP(Compute_Wake, Compute_Cost,
                                 distance_to_shore)
     if extra:
         power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                                         Zref, alphah, ro, aif, farm_y, cut_in,
-                                         rated, cut_out, Cp, availability,
+                                         Zref, alphah, ro, aif, farm_y, farm_x,
+                                         cut_in, rated, cut_out, Cp,
+                                         availability, Ct, rad2,
+                                         numx, numy, Lx, Ly, mlDenom,
                                          nwp, extra)
         tot_power = 0.
         for i in power:
@@ -192,9 +222,9 @@ def COP(Compute_Wake, Compute_Cost,
         return (costc + costa) / tot_power, power, windspeeds, (costc + costa)
     else:
         power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                             Zref, alphah, ro, aif, farm_y, cut_in,
-                             rated, cut_out, Cp, availability,
-                             nwp, extra)
+                             Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                             rated, cut_out, Cp, availability, Ct,
+                             rad2, numx, numy, Lx, Ly, mlDenom, nwp, extra)
         tot_power = 0.
         for i in power:
             tot_power += sum(i)
@@ -203,8 +233,9 @@ def COP(Compute_Wake, Compute_Cost,
 
 def LCOE(Compute_Wake, Compute_Cost,
          xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
-         farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
-         depth, yrs, WCOE, distance_to_shore, a):
+         farm_y, farm_x, cut_in, rated, cut_out, Cp, availability, Ct, rad2,
+         numx, numy, Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+         distance_to_shore, a):
     """Compute the levelized cost of energy of a farm
 
     Args:
@@ -227,6 +258,13 @@ def LCOE(Compute_Wake, Compute_Cost,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: radius around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -248,9 +286,10 @@ def LCOE(Compute_Wake, Compute_Cost,
                                 distance_to_shore)
     if extra:
         power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                                         Zref, alphah, ro, aif, farm_y, cut_in,
-                                         rated, cut_out, Cp, availability,
-                                         nwp, extra)
+                                         Zref, alphah, ro, aif, farm_y, farm_x,
+                                         cut_in, rated, cut_out, Cp,
+                                         availability, Ct, rad2, numx, numy,
+                                         Lx, Ly, mlDenom, nwp, extra)
         tot_power = 0.
         for i in power:
             tot_power += sum(i)
@@ -259,9 +298,9 @@ def LCOE(Compute_Wake, Compute_Cost,
         return LCOE, power, windspeeds, (costc + costa)
     else:
         power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                             Zref, alphah, ro, aif, farm_y, cut_in,
-                             rated, cut_out, Cp, availability,
-                             nwp, extra)
+                             Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                             rated, cut_out, Cp, availability, Ct,
+                             rad2, numx, numy, Lx, Ly, mlDenom, nwp, extra)
         tot_power = 0.
         for i in power:
             tot_power += sum(i)
@@ -272,8 +311,9 @@ def LCOE(Compute_Wake, Compute_Cost,
 
 def AEP(Compute_Wake, Compute_Cost,
         xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah, ro, aif,
-        farm_y, cut_in, rated, cut_out, Cp, availability, nwp, extra,
-        depth, yrs, WCOE, distance_to_shore, a):
+        farm_y, farm_x, cut_in, rated, cut_out, Cp, availability, Ct, rad2,
+        numx, numy, Lx, Ly, mlDenom, nwp, extra, depth, yrs, WCOE,
+        distance_to_shore, a):
     """Compute the annual energy production of a farm
 
     Args:
@@ -296,6 +336,13 @@ def AEP(Compute_Wake, Compute_Cost,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: radius around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -312,9 +359,10 @@ def AEP(Compute_Wake, Compute_Cost,
     """
     if extra:
         power, windspeeds = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                                         Zref, alphah, ro, aif, farm_y, cut_in,
-                                         rated, cut_out, Cp, availability,
-                                         nwp, extra)
+                                         Zref, alphah, ro, aif, farm_y, farm_x,
+                                         cut_in, rated, cut_out, Cp,
+                                         availability, Ct, rad2, numx, numy,
+                                         Lx, Ly, mlDenom, nwp, extra)
         tot_power = 0.
         for i in power:
             tot_power += sum(i)
@@ -327,9 +375,9 @@ def AEP(Compute_Wake, Compute_Cost,
         return AEP, power, windspeeds, (costc, costa)
     else:
         power = Compute_Wake(xlocs, ylocs, rr, hh, z0, U0, probwui,
-                             Zref, alphah, ro, aif, farm_y, cut_in,
-                             rated, cut_out, Cp, availability,
-                             nwp, extra)
+                             Zref, alphah, ro, aif, farm_y, farm_x, cut_in,
+                             rated, cut_out, Cp, availability, Ct,
+                             rad2, numx, numy, Lx, Ly, mlDenom, nwp, extra)
         tot_power = 0.
         for i in power:
             tot_power += sum(i)

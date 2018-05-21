@@ -37,23 +37,37 @@ try:
     from dolfin import derivative
     from dolfin import NonlinearVariationalSolver
     from dolfin import split
+    from dolfin import exp
+    from dolfin import sqrt
+    from dolfin import parameters
     from scipy import integrate
     import matplotlib.pyplot as plt
     import random as rd
+    import sys
+    sys.getrecursionlimit()
+    sys.setrecursionlimit(10000)
+    parameters["std_out_all_processes"] = False
+    # Print log messages only from the root process in parallel
+    parameters['form_compiler']['cpp_optimize_flags'] = ('-O3 -fno-math-errno'
+                                                         + ' -march=native')
+    parameters["form_compiler"]["optimize"] = True
+    parameters["form_compiler"]["cpp_optimize"] = True
+    parameters['form_compiler']['representation'] = 'uflacs'
+    parameters['form_compiler']['quadrature_degree'] = 12
+    parameters['linear_algebra_backend'] = "Eigen"
     nofenics = False
 except:
     print('warning: fenics is not installed or the fenicsproject environment '
           + 'is not activated. The CFD wake model is not available')
     nofenics = True
 import numpy as np
-
-# NOTES TO ANNALISE:
-#     Change CFD inputs to get rid of axle spin
+plt.switch_backend('agg')
 
 
 def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-            ro, aif, farm_y, cut_in, rated, cut_out, Cp,
-            availability, nwp=False, extra=False):
+            ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
+            availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+            nwp=False, extra=False):
     """Compute the turbine power generation (and optionally turbine wind speed)
         using 3D Jensen (PARK) wake model
 
@@ -81,6 +95,13 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: radius around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -501,8 +522,9 @@ def PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
 
 
 def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-            ro, aif, farm_y, cut_in, rated, cut_out, Cp,
-            availability, nwp=False, extra=False):
+            ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
+            availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+            nwp=False, extra=False):
     """Compute the turbine power generation (and optionally turbine wind speed)
         using 2D Jensen (PARK) wake model
 
@@ -530,6 +552,13 @@ def PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: radius around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -1105,7 +1134,7 @@ def refine_mesh(mesh, site_x, site_y, refine_where, mx, my, mz, ma, rad2):
             angle
         my: list of z-coordinates of wind turbines
         ma: list of turbine axial induction factors
-        rad2: radius about turbines in which to refine mes
+        rad2: radius about turbines in which to refine mesh
     Returns:
         wind farm mesh for CFD analysis
     """
@@ -1185,8 +1214,8 @@ def createRotatedTurbineForce(mx, my, ma, A, beta, numturbs, alpha, V, mesh,
         yrot = np.sin(alpha)*mx[i] + np.cos(alpha)*my[i]
         # print((xrot, yrot))
         tf = tf + (0.5 * A * Ct / ((1. - ma[i]) ** 2)
-                   / beta * np.exp(-(((x[0] - xrot)/thickness)**WTGexp
-                                   + ((x[1] - yrot)/radius)**WTGexp))
+                   / beta * exp(-(((x[0] - xrot)/thickness)**WTGexp
+                                  + ((x[1] - yrot)/radius)**WTGexp))
                    * WTGbase.copy(deepcopy=True))
     if checkpts:
         check_it = project(tf, V)
@@ -1201,13 +1230,13 @@ def createRotatedTurbineForce(mx, my, ma, A, beta, numturbs, alpha, V, mesh,
     return tf
 
 
-def main(tf, wind_case, VQ, radius, wind_cases, Lx, Ly, mlDenom):
+def mainCFD(tf, wind_speed, VQ, radius, Lx, Ly, mlDenom):
     """Determine wind speeds across field
 
     Args:
         tf: turbine force exerted across mesh
         VQ: mixed element functional stuff I don't totally understand
-        wind_cases: list of tuples with onset angle [0], and speed [1]
+        wind_speed: ambient wind speed
         Lx: length of the extent of the mesh in the x-direction
         Ly: Length of the extent of the mesh in the y-direction
         mlDenom: mixing length denominator
@@ -1230,7 +1259,7 @@ def main(tf, wind_case, VQ, radius, wind_cases, Lx, Ly, mlDenom):
             rd.seed(2)  # WHY IS THIS HERE?
 
         def eval(self, values, x):
-            values[0] = wind_cases[wind_case][1]
+            values[0] = wind_speed
             values[1] = 0.0
             values[2] = 0.0
 
@@ -1273,8 +1302,8 @@ def main(tf, wind_case, VQ, radius, wind_cases, Lx, Ly, mlDenom):
 
     lmix = radius/mlDenom  # mixing lenth
     # mean rate of strain tensor ... so confused
-    S = np.sqrt(2. * inner(0.5 * (grad(u_next)+grad(u_next).T),
-                           0.5 * (grad(u_next)+grad(u_next).T)))
+    S = sqrt(2. * inner(0.5 * (grad(u_next)+grad(u_next).T),
+                        0.5 * (grad(u_next)+grad(u_next).T)))
     nu_T = (lmix ** 2.) * S  # eddie viscosity
 
     F = (inner(grad(u_next)*u_next, v) * dx
@@ -1287,7 +1316,7 @@ def main(tf, wind_case, VQ, radius, wind_cases, Lx, Ly, mlDenom):
     bc1a = DirichletBC(VQ.sub(0).sub(1), Constant(0.0), NoSlipBoundary())
 
     # inflow BC
-    bc2 = DirichletBC(VQ.sub(0), Constant((wind_cases[wind_case][1], 0.0)),
+    bc2 = DirichletBC(VQ.sub(0), Constant((wind_speed, 0.0)),
                       InflowBoundary())
     bc = [bc1a, bc2]
     J = derivative(F, up_next)
@@ -1299,7 +1328,7 @@ def main(tf, wind_case, VQ, radius, wind_cases, Lx, Ly, mlDenom):
     prm["newton_solver"]["relative_tolerance"] = 1E-7
     prm["newton_solver"]["maximum_iterations"] = 25
     prm["newton_solver"]["relaxation_parameter"] = 1.0
-    prm["newton_solver"]["linear_solver"] = 'mumps'
+    prm["newton_solver"]["linear_solver"] = 'gmres'
     solver.solve()
     u_next, p_next = split(up_next)
     return u_next, up_next
@@ -1313,7 +1342,7 @@ def rotatedPowerFunction(alpha, A, beta, mx, my, ma, up,
     Args:
         alpha: wind onset angle
         A: turbine rotor swept area in meters squared (float)
-        beta:
+        beta: smoothing kernel
         mx: list of x-coordinates of wind turbines from 0-degree onset wind
             angle
         my: list of y-coordinates of wind turbines from 0-degree onset wind
@@ -1366,8 +1395,9 @@ def WTGdist(x, y):  # smoothing kernel
 
 
 def CFD_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
-           ro, aif, farm_y, cut_in, rated, cut_out, Cp,
-           availability, rad2, nwp=False, extra=False):
+           ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
+           availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+           nwp=False, extra=False):
     """Compute the turbine power generation (and optionally turbine wind speed)
         using WindSE2D CFD wake model
 
@@ -1395,6 +1425,13 @@ def CFD_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: radius around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -1406,7 +1443,6 @@ def CFD_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
         raise ModuleNotFoundError('The fenicsproject environment is not '
                                   + 'available. Ensure project is installed '
                                   + 'and environemt is activated')
-    adaptive_meshing = True
     if len(set(hh)) != 1:
         raise ValueError('More than one hub height specified for '
                          + '2D simulation')
@@ -1417,6 +1453,7 @@ def CFD_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
     J = 0.
     cumulative_power = [0.] * len(xlocs)
     numturbs = len(xlocs[0])
+    mz = [0.] * numturbs  # in future version, make this variable in csv files
     for i in range(numturbs):  # for each wind direction
         mx = [k[i] for k in xlocs]
         my = [k[i] for k in ylocs]
@@ -1425,14 +1462,18 @@ def CFD_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                                  -3 * rr[0], 3 * rr[i],
                                  lambda x: -3 * rr[i],
                                  lambda x: 3 * rr[i])
+        beta = beta[0]
         A = np.pi * pow(rr[i], 2)
         for j in range(len(U0)):  # for each wind speed
-            V, Q, VQ, mesh = create_mesh(mx, my, hh, ma, rad2)
+            V, Q, VQ, mesh = create_mesh(mx, my, mz, ma, rad2, farm_x,
+                                         farm_y, numx, numy, 2)
             # print(wind_cases)
             tf_rot = createRotatedTurbineForce(mx, my, ma, A, beta, numturbs,
-                                               90., V, mesh)
+                                               90., V, mesh, 8., 4.,
+                                               Ct, rr[i])
             # calculate force imparted by turbines
-            u_rot, up_rot = main(tf_rot, i, VQ)  # RANS solver
+            u_rot, up_rot = mainCFD(tf_rot, U0[j], VQ, rr[i], Lx, Ly, mlDenom)
+            # RANS solver
             if extra:
                 power_dev, windspeeds = rotatedPowerFunction(90., A, beta, mx,
                                                              my, ma, up_rot,
@@ -1457,4 +1498,4 @@ def CFD_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
 
 
 if __name__ == '__main__':
-    CFD_wake()
+    pass

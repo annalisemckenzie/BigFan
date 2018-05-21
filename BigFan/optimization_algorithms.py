@@ -180,7 +180,8 @@ def EPS(xlocation, ylocation, init_step, minstep,
         z0, U0, Zref, alphah, ro, yrs, WCOE, num_pops,
         max_pop_tries, aif, farm_x, farm_y, turb_sep, Eval_Objective,
         Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in, rated, cut_out,
-        Cp, availability, nwp, extra, depth, distance_to_shore, a, directions):
+        Cp, availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom, nwp, extra,
+        depth, distance_to_shore, a, directions):
     """Extended Pattern Search
 
     Args:
@@ -217,6 +218,13 @@ def EPS(xlocation, ylocation, init_step, minstep,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: number or radii around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -243,10 +251,11 @@ def EPS(xlocation, ylocation, init_step, minstep,
         tot_evals += 1
         nomove, power = Eval_Objective(Compute_Wake, Compute_Cost, xlocation,
                                        ylocation, rr, hh, z0, U0, probwui,
-                                       Zref, alphah, ro, aif, farm_y, cut_in,
-                                       rated, cut_out, Cp, availability,
-                                       nwp, extra, depth, yrs, WCOE,
-                                       distance_to_shore, a)
+                                       Zref, alphah, ro, aif, farm_y, farm_x,
+                                       cut_in, rated, cut_out, Cp,
+                                       availability, Ct, rad2, numx, numy,
+                                       Lx, Ly, mlDenom, nwp, extra, depth,
+                                       yrs, WCOE, distance_to_shore, a)
         step2 = init_step
         while step2 >= minstep:
             # create a randomly ordered vector of turbines
@@ -284,9 +293,12 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           rr, hh, z0, U0,
                                                           probwui, Zref,
                                                           alphah, ro, aif,
-                                                          farm_y, cut_in,
+                                                          farm_y, farm_x,
+                                                          cut_in,
                                                           rated, cut_out, Cp,
-                                                          availability,
+                                                          availability, Ct,
+                                                          rad2, numx, numy,
+                                                          Lx, Ly, mlDenom,
                                                           nwp, extra, depth,
                                                           yrs, WCOE,
                                                           distance_to_shore, a)
@@ -332,9 +344,12 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           rr, hh, z0, U0,
                                                           probwui, Zref,
                                                           alphah, ro, aif,
-                                                          farm_y, cut_in,
+                                                          farm_y, farm_x,
+                                                          cut_in,
                                                           rated, cut_out, Cp,
-                                                          availability,
+                                                          availability, Ct,
+                                                          rad2, numx, numy,
+                                                          Lx, Ly, mlDenom,
                                                           nwp, extra, depth,
                                                           yrs, WCOE,
                                                           distance_to_shore, a)
@@ -380,9 +395,12 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           rr, hh, z0, U0,
                                                           probwui, Zref,
                                                           alphah, ro, aif,
-                                                          farm_y, cut_in,
+                                                          farm_y, farm_x,
+                                                          cut_in,
                                                           rated, cut_out, Cp,
-                                                          availability,
+                                                          availability, Ct,
+                                                          rad2, numx, numy,
+                                                          Lx, Ly, mlDenom,
                                                           nwp, extra, depth,
                                                           yrs, WCOE,
                                                           distance_to_shore, a)
@@ -431,9 +449,12 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           rr, hh, z0, U0,
                                                           probwui, Zref,
                                                           alphah, ro, aif,
-                                                          farm_y, cut_in,
+                                                          farm_y, farm_x,
+                                                          cut_in,
                                                           rated, cut_out, Cp,
-                                                          availability,
+                                                          availability, Ct,
+                                                          rad2, numx, numy,
+                                                          Lx, Ly, mlDenom,
                                                           nwp, extra, depth,
                                                           yrs, WCOE,
                                                           distance_to_shore, a)
@@ -483,9 +504,12 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           rr, hh, z0, U0,
                                                           probwui, Zref,
                                                           alphah, ro, aif,
-                                                          farm_y, cut_in,
+                                                          farm_y, farm_x,
+                                                          cut_in,
                                                           rated, cut_out, Cp,
-                                                          availability,
+                                                          availability, Ct,
+                                                          rad2, numx, numy,
+                                                          Lx, Ly, mlDenom,
                                                           nwp, extra, depth,
                                                           yrs, WCOE,
                                                           distance_to_shore, a)
@@ -531,9 +555,12 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           rr, hh, z0, U0,
                                                           probwui, Zref,
                                                           alphah, ro, aif,
-                                                          farm_y, cut_in,
+                                                          farm_y, farm_x,
+                                                          cut_in,
                                                           rated, cut_out, Cp,
-                                                          availability,
+                                                          availability, Ct,
+                                                          rad2, numx, numy,
+                                                          Lx, Ly, mlDenom,
                                                           nwp, extra, depth,
                                                           yrs, WCOE,
                                                           distance_to_shore, a)
@@ -580,9 +607,12 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           rr, hh, z0, U0,
                                                           probwui, Zref,
                                                           alphah, ro, aif,
-                                                          farm_y, cut_in,
+                                                          farm_y, farm_x,
+                                                          cut_in,
                                                           rated, cut_out, Cp,
-                                                          availability,
+                                                          availability, Ct,
+                                                          rad2, numx, numy,
+                                                          Lx, Ly, mlDenom,
                                                           nwp, extra, depth,
                                                           yrs, WCOE,
                                                           distance_to_shore, a)
@@ -631,9 +661,12 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                           rr, hh, z0, U0,
                                                           probwui, Zref,
                                                           alphah, ro, aif,
-                                                          farm_y, cut_in,
+                                                          farm_y, farm_x,
+                                                          cut_in,
                                                           rated, cut_out, Cp,
-                                                          availability,
+                                                          availability, Ct,
+                                                          rad2, numx, numy,
+                                                          Lx, Ly, mlDenom,
                                                           nwp, extra, depth,
                                                           yrs, WCOE,
                                                           distance_to_shore, a)
@@ -719,9 +752,13 @@ def EPS(xlocation, ylocation, init_step, minstep,
                                                              rr, hh, z0, U0,
                                                              probwui, Zref,
                                                              alphah, ro, aif,
-                                                             farm_y, cut_in,
+                                                             farm_y, farm_x,
+                                                             cut_in,
                                                              rated, cut_out,
                                                              Cp, availability,
+                                                             Ct, rad2, numx,
+                                                             numy,
+                                                             Lx, Ly, mlDenom,
                                                              nwp, extra, depth,
                                                              yrs, WCOE,
                                                              distance_to_shore,
@@ -750,7 +787,8 @@ def EPS(xlocation, ylocation, init_step, minstep,
 def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
              alphah, ro, yrs, WCOE, num_pops, max_pop_tries, aif, farm_x,
              farm_y, turb_sep, Eval_Objective, Compute_Wake, Compute_Cost,
-             probwui, rr, hh, cut_in, rated, cut_out, Cp, availability, nwp,
+             probwui, rr, hh, cut_in, rated, cut_out, Cp, availability,
+             Ct, rad2, numx, numy, Lx, Ly, mlDenom, nwp,
              extra, depth, distance_to_shore, a, directions, mesh_width):
     """Discretized Extended Pattern Search
 
@@ -788,6 +826,13 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: number or radii around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -808,10 +853,11 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
     for h in range(0, 1):
         nomove, power = Eval_Objective(Compute_Wake, Compute_Cost, xlocation,
                                        ylocation, rr, hh, z0, U0, probwui,
-                                       Zref, alphah, ro, aif, farm_y, cut_in,
-                                       rated, cut_out, Cp, availability,
-                                       nwp, extra, depth, yrs, WCOE,
-                                       distance_to_shore, a)
+                                       Zref, alphah, ro, aif, farm_y, farm_x,
+                                       cut_in, rated, cut_out, Cp,
+                                       availability, Ct, rad2, numx, numy,
+                                       Lx, Ly, mlDenom, nwp, extra, depth,
+                                       yrs, WCOE, distance_to_shore, a)
         if farm_x % mesh_width == 0:
             # if space is evenly divisable by mesh size, add one point to
             # account for both edges
@@ -864,11 +910,13 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                                                       rr, hh, z0, U0,
                                                       probwui, Zref,
                                                       alphah, ro, aif,
-                                                      farm_y, cut_in,
+                                                      farm_y, farm_x,
+                                                      cut_in,
                                                       rated, cut_out, Cp,
-                                                      availability,
-                                                      nwp, extra, depth,
-                                                      yrs, WCOE,
+                                                      availability, Ct,
+                                                      rad2, numx, numy,
+                                                      Lx, Ly, mlDenom, nwp,
+                                                      extra, depth, yrs, WCOE,
                                                       distance_to_shore, a)
                         eval_ct += 1
                         if move2 >= nomove:
@@ -910,11 +958,13 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                                                       rr, hh, z0, U0,
                                                       probwui, Zref,
                                                       alphah, ro, aif,
-                                                      farm_y, cut_in,
+                                                      farm_y, farm_x,
+                                                      cut_in,
                                                       rated, cut_out, Cp,
-                                                      availability,
-                                                      nwp, extra, depth,
-                                                      yrs, WCOE,
+                                                      availability, Ct,
+                                                      rad2, numx, numy,
+                                                      Lx, Ly, mlDenom, nwp,
+                                                      extra, depth, yrs, WCOE,
                                                       distance_to_shore, a)
                         eval_ct += 1
                         if move3 >= nomove:
@@ -957,11 +1007,13 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                                                       rr, hh, z0, U0,
                                                       probwui, Zref,
                                                       alphah, ro, aif,
-                                                      farm_y, cut_in,
+                                                      farm_y, farm_x,
+                                                      cut_in,
                                                       rated, cut_out, Cp,
-                                                      availability,
-                                                      nwp, extra, depth,
-                                                      yrs, WCOE,
+                                                      availability, Ct,
+                                                      rad2, numx, numy,
+                                                      Lx, Ly, mlDenom, nwp,
+                                                      extra, depth, yrs, WCOE,
                                                       distance_to_shore, a)
                         eval_ct += 1
                         if move4 >= nomove:
@@ -1003,11 +1055,13 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                                                       rr, hh, z0, U0,
                                                       probwui, Zref,
                                                       alphah, ro, aif,
-                                                      farm_y, cut_in,
+                                                      farm_y, farm_x,
+                                                      cut_in,
                                                       rated, cut_out, Cp,
-                                                      availability,
-                                                      nwp, extra, depth,
-                                                      yrs, WCOE,
+                                                      availability, Ct,
+                                                      rad2, numx, numy,
+                                                      Lx, Ly, mlDenom, nwp,
+                                                      extra, depth, yrs, WCOE,
                                                       distance_to_shore, a)
                         eval_ct += 1
                         if move1 >= nomove:
@@ -1100,9 +1154,13 @@ def EPS_disc(xlocation, ylocation, init_step, minstep, z0, U0, Zref,
                                                              rr, hh, z0, U0,
                                                              probwui, Zref,
                                                              alphah, ro, aif,
-                                                             farm_y, cut_in,
+                                                             farm_y, farm_x,
+                                                             cut_in,
                                                              rated, cut_out,
                                                              Cp, availability,
+                                                             Ct, rad2, numx,
+                                                             numy, Lx, Ly,
+                                                             mlDenom,
                                                              nwp, extra, depth,
                                                              yrs, WCOE,
                                                              distance_to_shore,
@@ -1208,9 +1266,9 @@ def translate_chromosome(chromosome, binary_x, options_x,
 def GA(mesh_size, elite, mateable_range, mutation_rate,
        z0, U0, Zref, alphah, ro, yrs, WCOE, initial_num, population_size,
        generations_to_converge, aif, farm_x, farm_y, turb_sep, Eval_Objective,
-       Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in,
-       rated, cut_out, Cp, availability, nwp, extra, depth,
-       distance_to_shore, a, directions):
+       Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in, rated, cut_out,
+       Cp, availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+       nwp, extra, depth, distance_to_shore, a, directions):
     """Genetic Algorithm
 
     Args:
@@ -1244,6 +1302,13 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: number or radii around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -1274,10 +1339,6 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
         binary_y = int(binary_y + 1)
     else:
         binary_y = int(binary_y)
-    print('binary_x: ', binary_x)
-    print('binary_y: ', binary_y)
-    print('options_x: ', options_x)
-    print('options_y: ', options_y)
     length_gene = (int(binary_x) + int(binary_y)) * initial_num
     adults = []
     while len(adults) < population_size:
@@ -1288,16 +1349,13 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
         interference = Check_Interference(xloc, yloc, 'pop', turb_sep)
         if not interference:
             # print('no interference! ', len(adults))
-            x_big = max([i[0] for i in xloc])
-            y_big = max([i[0] for i in yloc])
-            if x_big > 400. or y_big > 400.:
-                    print('turbine outside of field')
             obje, power = Eval_Objective(Compute_Wake, Compute_Cost, xloc,
                                          yloc, rr, hh, z0, U0, probwui, Zref,
-                                         alphah, ro, aif, farm_y, cut_in,
-                                         rated, cut_out, Cp, availability,
-                                         nwp, extra, depth, yrs, WCOE,
-                                         distance_to_shore, a)
+                                         alphah, ro, aif, farm_y, farm_x,
+                                         cut_in, rated, cut_out, Cp,
+                                         availability, Ct, rad2, numx, numy,
+                                         Lx, Ly, mlDenom, nwp, extra, depth,
+                                         yrs, WCOE, distance_to_shore, a)
             evals += 1
             adults.append((obje, new_adult))
     adults = sorted(adults, key=lambda x: x[0])
@@ -1346,10 +1404,11 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
                 obje, power = Eval_Objective(Compute_Wake, Compute_Cost,
                                              xloc, yloc, rr, hh, z0,
                                              U0, probwui, Zref, alphah, ro,
-                                             aif, farm_y, cut_in, rated,
-                                             cut_out, Cp, availability, nwp,
-                                             extra, depth, yrs, WCOE,
-                                             distance_to_shore, a)
+                                             aif, farm_y, farm_x, cut_in,
+                                             rated, cut_out, Cp, availability,
+                                             Ct, rad2, numx, numy, Lx, Ly,
+                                             mlDenom, nwp, extra, depth, yrs,
+                                             WCOE, distance_to_shore, a)
                 evals += 1
                 # keep kids that don't violate constraints
                 children.append((obje, maybe_kids[i]))
@@ -1365,10 +1424,11 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
                 obje, power = Eval_Objective(Compute_Wake, Compute_Cost,
                                              xloc, yloc, rr, hh, z0,
                                              U0, probwui, Zref, alphah, ro,
-                                             aif, farm_y, cut_in, rated,
-                                             cut_out, Cp, availability, nwp,
-                                             extra, depth, yrs, WCOE,
-                                             distance_to_shore, a)
+                                             aif, farm_y, farm_x, cut_in,
+                                             rated, cut_out, Cp, availability,
+                                             Ct, rad2, numx, numy, Lx, Ly,
+                                             mlDenom, nwp, extra, depth, yrs,
+                                             WCOE, distance_to_shore, a)
                 evals += 1
                 # keep kids that don't violate constraints
                 children.append((obje, new_guy))
@@ -1384,12 +1444,13 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
                                       binary_y, options_y, mesh_size,
                                       directions)
     obje, power, windspeeds, cost = Eval_Objective(Compute_Wake, Compute_Cost,
-                                                   xloc, yloc, rr,
-                                                   hh, z0, U0, probwui, Zref,
-                                                   alphah, ro, aif, farm_y,
+                                                   xloc, yloc, rr, hh, z0, U0,
+                                                   probwui, Zref, alphah, ro,
+                                                   aif, farm_y, farm_x,
                                                    cut_in, rated, cut_out, Cp,
-                                                   availability, nwp, True,
-                                                   depth, yrs, WCOE,
+                                                   availability, Ct, rad2,
+                                                   numx, numy, Lx, Ly, mlDenom,
+                                                   nwp, True, depth, yrs, WCOE,
                                                    distance_to_shore, a)
     return xloc, yloc, power, obje, evals, windspeeds, cost, k
 
@@ -1398,8 +1459,8 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
         farm_x, farm_y, turb_sep, generations_to_converge,
         Eval_Objective, constraint_scale, z0, U0, Zref, alphah, ro, aif, yrs,
         WCOE, Compute_Wake, Compute_Cost, probwui, rr, hh,
-        cut_in, rated, cut_out, Cp, availability, nwp, extra, depth,
-        distance_to_shore, a, directions):
+        cut_in, rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
+        Lx, Ly, mlDenom, nwp, extra, depth, distance_to_shore, a, directions):
     """Compute the total cost of a farm
 
     Args:
@@ -1435,6 +1496,13 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
         cut-out: turbine cut-out speed (float)
         Cp: power coefficient (float)
         availability: turbine availability (float)
+        Ct: thrust coefficient
+        rad2: number or radii around each turbine to reduce mesh size
+        numx: initial number of mesh points in x-direction
+        numy: initial number of mesh points in y-direction
+        Lx: length of analysis area for CFD in x-direction
+        Ly: length of analysis area for CFD in y-direction
+        mlDenom: mixing length denominator for CFD
         nwp: whether to use the nested wake provision (True/False)
         extra: whether to provide turbine windspeeds and total cost
             in addition to objective and power output
@@ -1493,9 +1561,10 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
             ylocation.append(newy)
         obje, power = Eval_Objective(Compute_Wake, Compute_Cost, xlocation,
                                      ylocation, rr, hh, z0, U0, probwui,
-                                     Zref, alphah, ro, aif, farm_y, cut_in,
-                                     rated, cut_out, Cp, availability, nwp,
-                                     extra, depth, yrs, WCOE,
+                                     Zref, alphah, ro, aif, farm_y, farm_x,
+                                     cut_in, rated, cut_out, Cp, availability,
+                                     Ct, rad2, numx, numy, Lx, Ly, mlDenom,
+                                     nwp, extra, depth, yrs, WCOE,
                                      distance_to_shore, a)
         evals += 1
         current_evals.append(obje)
@@ -1581,8 +1650,10 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                                                   xlocation, ylocation, rr, hh,
                                                   z0, U0, probwui, Zref,
                                                   alphah, ro, aif, farm_y,
-                                                  cut_in, rated, cut_out, Cp,
-                                                  availability, nwp, extra,
+                                                  farm_x, cut_in, rated,
+                                                  cut_out, Cp, availability,
+                                                  Ct, rad2, numx, numy, Lx, Ly,
+                                                  mlDenom, nwp, extra,
                                                   depth, yrs, WCOE,
                                                   distance_to_shore, a)
             evals += 1
@@ -1632,11 +1703,14 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                                                             z0, U0, probwui,
                                                             Zref, alphah, ro,
                                                             aif, farm_y,
+                                                            farm_x,
                                                             cut_in, rated,
                                                             cut_out, Cp,
-                                                            availability, nwp,
-                                                            True, depth, yrs,
-                                                            WCOE,
+                                                            availability, Ct,
+                                                            rad2, numx, numy,
+                                                            Lx, Ly, mlDenom,
+                                                            nwp, True, depth,
+                                                            yrs, WCOE,
                                                             distance_to_shore,
                                                             a)
     best_x = [[i] for i in best_x]
