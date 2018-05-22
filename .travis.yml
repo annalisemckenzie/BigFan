@@ -1,6 +1,8 @@
 language: python
 python:
 - "3.6"
+#- conda install --yes fenics=2017.1.dev
+#sudo: false
 
 before_install:
   # Install FEniCS (but don't do an 'apt-get upgrade' as this will timeout the process)
@@ -20,8 +22,12 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     - conda update -q --all
+    - conda install numpy>=1.12.0
+    - conda install pytest>=3.2.0
+    - conda install pytest-cov
+    - conda install matplotlib
     - conda config --append channels conda-forge
-    - conda env create -qf test-environment.yaml;
-    - source activate test-environment;
+    #- conda install --yes fenics=2017.2
+    #- source activate fenicsproject;
 script:
     - pytest -vv --cov=./;
