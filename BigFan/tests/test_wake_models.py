@@ -77,7 +77,7 @@ def test_Jensen_3D():
     output = wm.PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref,
                         alphah, ro, aif, farm_y, farm_x, cut_in,
                         rated, cut_out, Cp, availability, Ct, rad2,
-                        numx, numy, Lx, Ly, mlDenom, False, True)
+                        numx, numy, Lx, Ly, mlDenom, True, True)
     assert np.allclose(output[0], power, atol=1e-2)
     assert np.allclose(output[1], windspeeds, atol=1e-2)
     windspeeds = [[[0., 10.], [0., 3.9414109332807392],
@@ -91,7 +91,7 @@ def test_Jensen_3D():
     output = wm.PARK_3D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                         ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
                         availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                        True, True)
+                        False, True)
     assert np.allclose(output[0], power, atol=1e-2)
     assert np.allclose(output[1], windspeeds, atol=1e-2)
 
@@ -168,7 +168,7 @@ def test_Jensen_2D():
     output = wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                         ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
                         availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                        False, True)
+                        True, True)
     assert np.allclose(output[0], power, atol=1e-2)
     assert np.allclose(output[1], windspeeds, atol=1e-2)
     windspeeds = [[[0., 10.], [0., 3.9414109332807392],
@@ -182,7 +182,7 @@ def test_Jensen_2D():
     output = wm.PARK_2D(xlocs, ylocs, rr, hh, z0, U0, probwui, Zref, alphah,
                         ro, aif, farm_y, farm_x, cut_in, rated, cut_out, Cp,
                         availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
-                        True, True)
+                        False, True)
     assert np.allclose(output[0], power, atol=1e-2)
     assert np.allclose(output[1], windspeeds, atol=1e-2)
 
