@@ -8,7 +8,7 @@ except ImportError:
     from distutils.core import setup
     have_setuptools = False
 setup_kwargs = {
-        'name': 'BigFan',
+        'name': 'bigfan',
         'version': '0.1.0',
         'description': 'Wind Farm Analysis and Optimization',
         'author': 'Annalise Miller',
@@ -20,12 +20,12 @@ setup_kwargs = {
             'Programming Language :: Python :: 3.6',
             ],
         'zip_safe': False,
-        'packages': ['BigFan'],
+        'packages': ['bigfan'],
         'package_dir': {
-            'BigFan': 'BigFan',
+            'BigFan': 'bigfan',
             },
         # not confident about this line
-        'data_files': [('BigFan', ['inputs.csv'])],
+        'data_files': [('bigfan', ['inputs.csv'])],
         }
 if __name__ == '__main__':
     setup(**setup_kwargs)
