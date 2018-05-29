@@ -1,11 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu May 10 11:22:08 2018
-
-@author: Annalise
-setup.py
-"""
-
 import sys
 
 
@@ -19,9 +11,9 @@ setup_kwargs = {
         'name': 'BigFan',
         'version': '0.1.0',
         'description': 'Wind Farm Analysis and Optimization',
-        'author': 'Annnalise Miller',
+        'author': 'Annalise Miller',
         'author_email': 'millanna@oregonstate.edu',
-        'url': 'http://www.oreilly.com/',
+        'url': 'https://github.com/annalisemckenzie/BigFan',
         'classifiers': [
             'License :: OSI Approved',
             'Intended Audience :: Wind Farm Developers',
@@ -30,9 +22,9 @@ setup_kwargs = {
         'zip_safe': False,
         'packages': ['BigFan'],
         'package_dir': {
-            'BigFan': 'BigFam',
+            'BigFan': 'BigFan',
             },
-        # not confident about this lin
+        # not confident about this line
         'data_files': [('BigFan', ['inputs.csv'])],
         }
 if __name__ == '__main__':

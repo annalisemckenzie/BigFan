@@ -1,0 +1,42 @@
+{% set data = load_setup_py_data() %}
+
+package:
+  name: BigFan
+  version: {{ data['version'] }}
+
+source:
+  path: ..
+
+build:
+  number: 0
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python >= 3
+    - setuptools
+
+  run:
+    - python
+    - numpy
+
+test:
+  imports:
+    - BigFan
+
+  requires:
+    - pytest
+    - pytest-cov
+
+  commands:
+    - pytest -vv --pyargs BigFan
+
+about:
+  home: data['url']
+  license: MIT
+  license_file: LICENSE
+  license_family: MIT
+
+  summary: data['description']
+  description: data['long_description']
+  dev_url: data['url']

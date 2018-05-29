@@ -40,6 +40,7 @@ try:
     from dolfin import exp
     from dolfin import sqrt
     from dolfin import parameters
+    from dolfin import solve
     from scipy import integrate
     import matplotlib.pyplot as plt
     plt.switch_backend('agg')
@@ -1324,12 +1325,14 @@ def mainCFD(tf, wind_speed, VQ, radius, Lx, Ly, mlDenom):
     solver = NonlinearVariationalSolver(problem)
     prm = solver.parameters
     solver.nonlinear_variational_solver = 'newton_solver'
-    prm["newton_solver"]["absolute_tolerance"] = 1E-8
-    prm["newton_solver"]["relative_tolerance"] = 1E-7
-    prm["newton_solver"]["maximum_iterations"] = 25
+    prm["newton_solver"]["absolute_tolerance"] = 1E-3
+    prm["newton_solver"]["relative_tolerance"] = 1E-3
+    prm["newton_solver"]["maximum_iterations"] = 120
     prm["newton_solver"]["relaxation_parameter"] = 1.0
-    prm["newton_solver"]["linear_solver"] = 'gmres'
+    prm["newton_solver"]["linear_solver"] = 'cg'
     solver.solve()
+#    solve(F == 0, up_next, bc,
+#          solver_parameters={"newton_solver":{"absolute_tolerance": 1e-8}})
     u_next, p_next = split(up_next)
     return u_next, up_next
 
