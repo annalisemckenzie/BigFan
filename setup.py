@@ -9,7 +9,7 @@ except ImportError:
     have_setuptools = False
 setup_kwargs = {
         'name': 'bigfan',
-        'version': '0.1.0',
+        'version': '0.1.1',
         'description': 'Wind Farm Analysis and Optimization',
         'author': 'Annalise Miller',
         'author_email': 'millanna@oregonstate.edu',
@@ -20,12 +20,12 @@ setup_kwargs = {
             'Programming Language :: Python :: 3.6',
             ],
         'zip_safe': False,
-        'packages': ['bigfan'],
+        'packages': ['bigfan', 'bigfan.tests'],
         'package_dir': {
-            'BigFan': 'bigfan',
+            'bigfan': 'bigfan',
             },
         # not confident about this line
-        'data_files': [('bigfan', ['inputs.csv'])],
+        'data_files': [('bigfan', ['bigfan/inputs.csv'])],
         }
 if __name__ == '__main__':
     setup(**setup_kwargs)

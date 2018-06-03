@@ -11,10 +11,10 @@ Main File - accepts input values and sets up analysis
 
 # import csv
 import os
-import objectives as obj
-import cost_models as cm
-import wake_models as wm
-import optimization_algorithms as oa
+from . import objectives as obj
+from . import cost_models as cm
+from . import wake_models as wm
+from . import optimization_algorithms as oa
 import warnings
 import random
 #import matplotlib.pyplot as plt
