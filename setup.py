@@ -9,7 +9,7 @@ except ImportError:
     have_setuptools = False
 setup_kwargs = {
         'name': 'bigfan',
-        'version': '0.1.1',
+        'version': '0.1.2',
         'description': 'Wind Farm Analysis and Optimization',
         'author': 'Annalise Miller',
         'author_email': 'millanna@oregonstate.edu',

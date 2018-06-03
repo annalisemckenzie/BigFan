@@ -1452,7 +1452,7 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
                                                    numx, numy, Lx, Ly, mlDenom,
                                                    nwp, True, depth, yrs, WCOE,
                                                    distance_to_shore, a)
-    return xloc, yloc, power, obje, evals, windspeeds, cost, k
+    return xloc, yloc, power, obje, evals
 
 
 def PSO(self_weight, global_weight, swarm_size, initial_num,
@@ -1674,7 +1674,7 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
         for i in range(swarm_size):
             if self_best_eval[i] < best_eval and self_best_violation[i] < 1e-5:
                 # only accept global best if no constraint violations
-                print('new best evaluation!')
+                # print('new best evaluation!')
                 best_eval = self_best_eval[i]
                 best_x = self_bestx[i]
                 best_y = self_besty[i]
@@ -1715,4 +1715,4 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
                                                             a)
     best_x = [[i] for i in best_x]
     best_y = [[i] for i in best_y]
-    return best_x, best_y, power, new_objective, evals, windspeeds, cost, k
+    return best_x, best_y, power, new_objective, evals
