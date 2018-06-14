@@ -1269,7 +1269,7 @@ def GA(mesh_size, elite, mateable_range, mutation_rate,
        Compute_Wake, Compute_Cost, probwui, rr, hh, cut_in, rated, cut_out,
        Cp, availability, Ct, rad2, numx, numy, Lx, Ly, mlDenom,
        nwp, extra, depth, distance_to_shore, a, directions):
-    """Genetic Algorithm
+    """Optimize turbine layout using a Genetic Algorithm
 
     Args:
         mesh_size: width of mesh for GA
@@ -1461,7 +1461,7 @@ def PSO(self_weight, global_weight, swarm_size, initial_num,
         WCOE, Compute_Wake, Compute_Cost, probwui, rr, hh,
         cut_in, rated, cut_out, Cp, availability, Ct, rad2, numx, numy,
         Lx, Ly, mlDenom, nwp, extra, depth, distance_to_shore, a, directions):
-    """Compute the total cost of a farm
+    """Optimize farm layout using a particle swarm optimization
 
     Args:
         self_weight: weight given to individual's best past evaluation
